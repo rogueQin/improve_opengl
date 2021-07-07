@@ -6,8 +6,14 @@
 
 GLfloat vertices[] = {
 	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.0f
+	-0.5f, 0.5f, 0.0f,
+	0.5f, 0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f
+};
+
+unsigned int indices[] = {
+	0,1,2,
+	2,3,0
 };
 
 const GLchar* vertexShaderSource = "#version 330 core\n"
@@ -102,26 +108,29 @@ int main()
 
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
-	// 初始化顶点缓冲对象
 	glGenBuffers(1, &VBO);
-
 	// 声明一个顶点数组对象
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
+	// 生命一个EBO
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
 
-	
 	glBindVertexArray(VAO);
-	// 设置顶点缓冲对象缓冲区类型
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// 向缓冲区中写入数据
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// 连接顶点属性
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-	
+		// 设置顶点缓冲对象缓冲区类型
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		// 向缓冲区中写入数据
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		// EBO数据
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		// 连接顶点属性
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
-
-
+	
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -134,18 +143,37 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// 使用着色器程序对象
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0,3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
+		// 使用着色器程序对象
+		//glUseProgram(shaderProgram);
+		//glBindVertexArray(VAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glBindVertexArray(0);
+
+		//// 初始化顶点缓冲对象
+		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		//// 向缓冲区中写入数据
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		//glEnableVertexAttribArray(0);
+		//// 连接顶点属性
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		//
+		//glUseProgram(shaderProgram);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		//glDisableVertexAttribArray(0);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+	glDeleteProgram(shaderProgram);
 
 	glfwTerminate();
 	return 0;
