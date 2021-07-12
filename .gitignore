@@ -1,5 +1,4 @@
-/improve_opengl/LearnOpenGL/.vs/
-/improve_opengl/LearnOpenGL/Debug/
-/improve_opengl/LearnOpenGL/LearnOpenGL/Debug/
+.vs/
+Debug/
+x64/
 
-improve_opengl/LearnOpenGL/LearnOpenGL/LearnOpenGL.vcxproj
