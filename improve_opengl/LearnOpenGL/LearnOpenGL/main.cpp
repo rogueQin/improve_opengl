@@ -6,7 +6,7 @@
 
 GLfloat vertices[] = {
 	-0.5f, -0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f,
+	-0.5f, 0.5f, 0.0f, 
 	0.5f, 0.5f, 0.0f,
 	0.5f, -0.5f, 0.0f
 };
@@ -30,9 +30,10 @@ const GLchar* fragmentShaderSource =
 "#version 330 core\n"
 "out vec4 color;\n"
 "in vec4 vertexColor;\n"
+"uniform vec4 ourColor;\n"
 "void main()\n"
 "{\n"
-"color = vertexColor;\n"
+"color = ourColor;\n"
 "}\n\0";
 
 GLint success;
@@ -148,7 +149,12 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float timeValue = glfwGetTime();
+		float greenValue = sin(timeValue);
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 		glUseProgram(shaderProgram);
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
