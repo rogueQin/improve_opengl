@@ -5,10 +5,10 @@
 
 
 GLfloat vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f, 
-	0.5f, 0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f
+	-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+	-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+	0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+	0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f
 };
 
 unsigned int indices[] = {
@@ -19,21 +19,21 @@ unsigned int indices[] = {
 const GLchar* vertexShaderSource = 
 "#version 330 core\n"
 "layout (location = 0) in vec3 position;\n"
-"out vec4 vertexColor;\n"
+"layout (location = 1) in vec3 aColor;\n"
+"out vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
 "gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-"vertexColor = vec4(0.5,0.0,0.0,1.0);\n"
+"vertexColor = aColor;\n"
 "}\0";
 
 const GLchar* fragmentShaderSource = 
 "#version 330 core\n"
 "out vec4 color;\n"
-"in vec4 vertexColor;\n"
-"uniform vec4 ourColor;\n"
+"in vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
-"color = ourColor;\n"
+"color = vec4(vertexColor, 1.0);\n"
 "}\n\0";
 
 GLint success;
@@ -133,8 +133,11 @@ int main()
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 		// 连接顶点属性
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 	
 
@@ -149,11 +152,11 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		float timeValue = glfwGetTime();
-		float greenValue = sin(timeValue);
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+		//float timeValue = glfwGetTime();
+		//float greenValue = sin(timeValue);
+		//int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 		glUseProgram(shaderProgram);
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
