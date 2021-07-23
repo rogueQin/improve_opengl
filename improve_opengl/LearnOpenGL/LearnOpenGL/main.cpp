@@ -17,20 +17,19 @@ unsigned int indices[] = {
 	2,3,0
 };
 
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow * window);
 
 int main() 
 {
-	// ³õÊ¼»¯GLFW´°¿Ú
+	// åˆå§‹åŒ–GLFWçª—å£
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// ´´½¨GLFW´°¿Ú
+	// åˆ›å»ºGLFWçª—å£
 	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
@@ -40,7 +39,7 @@ int main()
 	}
 	glfwMakeContextCurrent(window);
 
-	// ³õÊ¼»¯GLAD
+	// åˆå§‹åŒ–GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD!" << std::endl;
@@ -51,27 +50,27 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	
-	// ÉùÃ÷Ò»¸ö¶¥µã»º³å¶ÔÏó
+	// å£°æ˜ä¸€ä¸ªé¡¶ç‚¹ç¼“å†²å¯¹è±¡
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
-	// ÉùÃ÷Ò»¸ö¶¥µãÊı×é¶ÔÏó
+	// å£°æ˜ä¸€ä¸ªé¡¶ç‚¹æ•°ç»„å¯¹è±¡
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
-	// ÉúÃüÒ»¸öEBO
+	// ç”Ÿå‘½ä¸€ä¸ªEBO
 	unsigned int EBO;
 	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAO);
-		// ÉèÖÃ¶¥µã»º³å¶ÔÏó»º³åÇøÀàĞÍ
+		// è®¾ç½®é¡¶ç‚¹ç¼“å†²å¯¹è±¡ç¼“å†²åŒºç±»å‹
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		// Ïò»º³åÇøÖĞĞ´ÈëÊı¾İ
+		// å‘ç¼“å†²åŒºä¸­å†™å…¥æ•°æ®
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		// EBOÊı¾İ
+		// EBOæ•°æ®
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-		// Á¬½Ó¶¥µãÊôĞÔ
+		// è¿æ¥é¡¶ç‚¹å±æ€§
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
@@ -84,12 +83,12 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		// ¼ì²é²¢µ÷ÓÃÊÂ¼ş
+		// æ£€æŸ¥å¹¶è°ƒç”¨äº‹ä»¶
 		glfwPollEvents();
-		// ´¦ÀíÊäÈëÊÂ¼ş
+		// å¤„ç†è¾“å…¥äº‹ä»¶
 		processInput(window);
 
-		// ´¦ÀíäÖÈ¾Ö¸Áî
+		// å¤„ç†æ¸²æŸ“æŒ‡ä»¤
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -99,7 +98,7 @@ int main()
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
-		// ½»»»»º³åÇø
+		// äº¤æ¢ç¼“å†²åŒº
 		glfwSwapBuffers(window);
 	}
 
