@@ -84,12 +84,13 @@ int main()
 	glBindVertexArray(0);
 	
 
-	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
-
 	// 创建Texture缓存对象
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	unsigned int texture_wall, texture_face;
+	int width, height, nrChanels;
+
+	glGenTextures(1, &texture_wall);
+	glBindTexture(GL_TEXTURE_2D, texture_wall);
+
 	// 为当前绑定的纹理对象设置环绕方式
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -98,18 +99,47 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// 加载纹理
-	int width, height, nrChanels;
-	unsigned char* data = stbi_load("../LearnOpenGL/res/container.jpg", &width, &height, &nrChanels, 0);
-	if (data)
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data_wall = stbi_load("../LearnOpenGL/res/container.jpg", &width, &height, &nrChanels, 0);
+	if (data_wall)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_wall);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
 	{
 		std::cout << "Failed to load texture!" << std::endl;
 	}
-	stbi_image_free(data);
+	stbi_image_free(data_wall);
+
+
+	glGenTextures(1, &texture_face);
+	glBindTexture(GL_TEXTURE_2D, texture_face);
+
+	// 为当前绑定的纹理对象设置环绕方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	unsigned char* data_face = stbi_load("../LearnOpenGL/res/awesomeface.png", &width, &height, &nrChanels, 0);
+	if (data_face)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_face);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture!" << std::endl;
+	}
+	stbi_image_free(data_face);
+
+
+	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
+	shader->use();
+	shader->setInt("fallTexture", 0);
+	shader->setInt("faceTexture", 1);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -124,7 +154,11 @@ int main()
 
 		shader->use();
 
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_wall);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture_face);
+
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
