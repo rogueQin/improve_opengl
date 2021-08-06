@@ -4,7 +4,9 @@
 #include <iostream>
 #include "Shader.h"
 #include "stb_image.h"
-
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 GLfloat vertices[] = {
@@ -141,6 +143,16 @@ int main()
 	shader->setInt("fallTexture", 0);
 	shader->setInt("faceTexture", 1);
 
+	//glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+	//glm::mat4 trans;
+	//trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+	//vec = trans * vec;
+	glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+	trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 1.0f));
+	
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
@@ -152,6 +164,10 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // (float)glfwGetTime()
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		shader->setMatrix4f("transform", trans);
 		shader->use();
 
 		glActiveTexture(GL_TEXTURE0);
