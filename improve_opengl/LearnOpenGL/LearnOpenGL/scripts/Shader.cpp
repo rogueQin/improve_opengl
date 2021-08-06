@@ -105,3 +105,13 @@ void Shader::setFloat(const std::string &name, float value) const
 	GLuint uniformLocation = glGetUniformLocation(ID, name.c_str());
 	glUniform1f(uniformLocation, value);
 }
+
+void Shader::setMatrix4f(const std::string &name, glm::mat4 transform) const
+{
+	GLuint uniformLocation = glGetUniformLocation(ID, name.c_str());
+	// uniformLocation 
+	// 参数二 : 矩阵数量
+	// 参数三 : 是否交换矩阵（行列对换）
+	// 参数四 : 矩阵数据
+	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(transform));
+}
