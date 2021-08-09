@@ -85,9 +85,19 @@ float camera_speed = 1.0f;
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 
+float pitch = 0.0f;
+float yaw = 0.0f;
+
+float lastX = 0.0f;
+float lastY = 0.0f;
+
+bool first_mouse = true;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow * window);
+
+void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
 int main() 
 {
@@ -117,6 +127,10 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+
+	glEnable(GL_DEPTH_TEST);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
 	
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
@@ -201,14 +215,10 @@ int main()
 	}
 	stbi_image_free(data_face);
 
-
 	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 	shader->use();
 	shader->setInt("fallTexture", 0);
 	shader->setInt("faceTexture", 1);
-
-
-	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -218,8 +228,10 @@ int main()
 
 		// 检查并调用事件
 		glfwPollEvents();
+		
 		// 处理输入事件 
 		processInput(window);
+
 
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -312,4 +324,44 @@ void processInput(GLFWwindow * window)
 	{
 		camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed * delta_time;
 	}
+}
+
+void mouse_callback(GLFWwindow * window, double xpos, double ypos)
+{
+	if (first_mouse)
+	{
+		first_mouse = false;
+		lastX = xpos;
+		lastY = ypos;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = ypos - lastY;
+
+	lastX = xpos;
+	lastY = ypos;
+
+	float sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	pitch += yoffset;
+	yaw += xoffset;
+
+	if (pitch > 89.0f)
+	{
+		pitch = 89.0f;
+	}
+
+	if (pitch < -89.0f)
+	{
+		pitch = -89.0f;
+	}
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+	front.y = sin(glm::radians(pitch));
+	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+
+	camera_front = glm::vec3(0.0f, 0.0f, -1.0f) + glm::normalize(front);
 }
