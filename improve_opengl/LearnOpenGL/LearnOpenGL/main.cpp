@@ -81,17 +81,6 @@ glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-float camera_speed = 1.0f;
-float delta_time = 0.0f;
-float last_frame = 0.0f;
-
-float pitch = 0.0f;
-float yaw = 0.0f;
-
-float lastX = 0.0f;
-float lastY = 0.0f;
-
-float fov = 45.0f;
 
 bool first_mouse = true;
 
