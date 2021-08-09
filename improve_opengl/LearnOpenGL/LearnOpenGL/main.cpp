@@ -213,13 +213,30 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-		// 观察矩阵
-		glm::mat4 view = glm::mat4(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		//// 观察矩阵
+		//glm::mat4 view = glm::mat4(1.0f);
+		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
 		// 投影矩阵
 		glm::mat4 projection = glm::mat4(1.0f);
 		projection = glm::perspective(glm::radians(45.0f), ((float)screen_width) / ((float)screen_height), 0.1f, 100.0f);
+
+		// 摄像机
+		//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+		//glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+		//glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+		//glm::vec3 up = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
+		//glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+		//glm::vec3 cameraUp = glm::normalize(glm::cross(cameraDirection, cameraRight));
+
+		
+		float radius = 30.0f;
+		float ang_value = (float)glfwGetTime();
+		float cam_x = sin(ang_value) * radius;
+		float cam_z = cos(ang_value) * radius;
+
+		// 观察矩阵
+		glm::mat4 view = glm::lookAt(glm::vec3(cam_x, 0.0f, cam_z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 10.f, 0.0f));
 
 		for (int i = 0; i < 10; i++)
 		{
