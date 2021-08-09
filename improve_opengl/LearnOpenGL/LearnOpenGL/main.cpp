@@ -77,6 +77,14 @@ glm::vec3 cube_pos_list[] = {
 	glm::vec3(3.0f, 3.0f, -7.0f)
 };
 
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float camera_speed = 1.0f;
+float delta_time = 0.0f;
+float last_frame = 0.0f;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow * window);
@@ -204,6 +212,10 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
+		float current_frame = glfwGetTime();
+		delta_time = current_frame - last_frame;
+		last_frame = current_frame;
+
 		// 检查并调用事件
 		glfwPollEvents();
 		// 处理输入事件 
@@ -229,14 +241,13 @@ int main()
 		//glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 		//glm::vec3 cameraUp = glm::normalize(glm::cross(cameraDirection, cameraRight));
 
-		
 		float radius = 30.0f;
 		float ang_value = (float)glfwGetTime();
 		float cam_x = sin(ang_value) * radius;
 		float cam_z = cos(ang_value) * radius;
 
 		// 观察矩阵
-		glm::mat4 view = glm::lookAt(glm::vec3(cam_x, 0.0f, cam_z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 10.f, 0.0f));
+		glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
 
 		for (int i = 0; i < 10; i++)
 		{
@@ -284,5 +295,21 @@ void processInput(GLFWwindow * window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camera_pos += camera_front * camera_speed * delta_time;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed * delta_time;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camera_pos -= camera_front * camera_speed * delta_time;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed * delta_time;
 	}
 }
