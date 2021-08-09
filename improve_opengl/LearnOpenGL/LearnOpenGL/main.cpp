@@ -91,6 +91,8 @@ float yaw = 0.0f;
 float lastX = 0.0f;
 float lastY = 0.0f;
 
+float fov = 45.0f;
+
 bool first_mouse = true;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -98,6 +100,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow * window);
 
 void mouse_callback(GLFWwindow * window, double xpos, double ypos);
+
+void scale_callback(GLFWwindow * window, double xoffset, double yoffset);
 
 int main() 
 {
@@ -131,6 +135,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scale_callback);
 	
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
@@ -243,7 +248,7 @@ int main()
 
 		// 投影矩阵
 		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), ((float)screen_width) / ((float)screen_height), 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), ((float)screen_width) / ((float)screen_height), 0.1f, 100.0f);
 
 		// 摄像机
 		//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -364,4 +369,20 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos)
 	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
 
 	camera_front = glm::vec3(0.0f, 0.0f, -1.0f) + glm::normalize(front);
+}
+
+void scale_callback(GLFWwindow * window, double xoffset, double yoffset) 
+{
+	if (fov >= 1.0f && fov <= 45.0f)
+	{
+		fov -= yoffset;
+	}
+	if (fov <= 1.0f)
+	{
+		fov = 1.0f;
+	}
+	if (fov > 45.0f)
+	{
+		fov = 45.0f;
+	}
 }
