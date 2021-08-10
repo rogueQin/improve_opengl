@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Camera.h"
 
 
 const int screen_width = 800;
@@ -66,31 +67,27 @@ unsigned int indices[] = {
 
 glm::vec3 cube_pos_list[] = {
 	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(1.0f, 1.0f, -15.0f),
-	glm::vec3(-1.0f, 1.0f, -14.0f),
-	glm::vec3(-1.0f, -1.0f, -13.0f),
-	glm::vec3(1.0f, -1.0f, -12.0f),
-	glm::vec3(2.0f, 2.0f, -11.0f),
-	glm::vec3(2.0f, -2.0f, -10.0f),
-	glm::vec3(-2.0f, -2.0f, -9.0f),
-	glm::vec3(-2.0f, 2.0f, -8.0f),
-	glm::vec3(3.0f, 3.0f, -7.0f)
+	glm::vec3(5.0f, 5.0f, -5.0f),
+	glm::vec3(-5.0f, 5.0f, -5.0f),
+	glm::vec3(-5.0f, -5.0f, -5.0f),
+	glm::vec3(5.0f, -5.0f, -5.0f),
+	glm::vec3(5.0f, 5.0f, 5.0f),
+	glm::vec3(-5.0f, 5.0f, 5.0f),
+	glm::vec3(-5.0f, -5.0f, 5.0f),
+	glm::vec3(5.0f, -5.0f, 5.0f)
 };
 
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
-
-
-bool first_mouse = true;
+Camera * camera_main;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow * window);
 
+void key_callback(GLFWwindow * window, int key, int scancode, int actin, int mods);
+
 void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
-void scale_callback(GLFWwindow * window, double xoffset, double yoffset);
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
 int main() 
 {
@@ -120,12 +117,16 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scale_callback);
-	
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetKeyCallback(window, key_callback);
+	//glfwSetScrollCallback(window, camera_main->scroll_callback);
+
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
@@ -216,57 +217,35 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		float current_frame = glfwGetTime();
-		delta_time = current_frame - last_frame;
-		last_frame = current_frame;
-
 		// 检查并调用事件
 		glfwPollEvents();
 		
 		// 处理输入事件 
 		processInput(window);
 
+		camera_main->update();
 
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-		//// 观察矩阵
-		//glm::mat4 view = glm::mat4(1.0f);
-		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		// 观察矩阵
+		glm::mat4 view = camera_main->getView();
+		shader->setMatrix4f("view", view);
 
 		// 投影矩阵
-		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(fov), ((float)screen_width) / ((float)screen_height), 0.1f, 100.0f);
+		glm::mat4 projection = camera_main->getProjection();
+		shader->setMatrix4f("projection", projection);
 
-		// 摄像机
-		//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-		//glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-		//glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-		//glm::vec3 up = glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f));
-		//glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-		//glm::vec3 cameraUp = glm::normalize(glm::cross(cameraDirection, cameraRight));
-
-		float radius = 30.0f;
-		float ang_value = (float)glfwGetTime();
-		float cam_x = sin(ang_value) * radius;
-		float cam_z = cos(ang_value) * radius;
-
-		// 观察矩阵
-		glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 9; i++)
 		{
 			// 模型矩阵
 			glm::mat4 trans = glm::mat4(1.0f);
 			trans = glm::translate(trans, cube_pos_list[i]);
 			trans = glm::rotate(trans, glm::radians(-45.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-			trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f)); // (float)glfwGetTime()
+			trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
 		
 			shader->setMatrix4f("transform", trans);
-			shader->setMatrix4f("view", view);
-			shader->setMatrix4f("projection", projection);
 			shader->use();
 
 			glActiveTexture(GL_TEXTURE0);
@@ -302,76 +281,32 @@ void processInput(GLFWwindow * window)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (nullptr != camera_main)
 	{
-		camera_pos += camera_front * camera_speed * delta_time;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed * delta_time;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		camera_pos -= camera_front * camera_speed * delta_time;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed * delta_time;
+		camera_main->input_callback(window);
 	}
 }
 
 void mouse_callback(GLFWwindow * window, double xpos, double ypos)
 {
-	if (first_mouse)
+	if (nullptr != camera_main)
 	{
-		first_mouse = false;
-		lastX = xpos;
-		lastY = ypos;
+		camera_main->mouse_callback(window, xpos, ypos);
 	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = ypos - lastY;
-
-	lastX = xpos;
-	lastY = ypos;
-
-	float sensitivity = 0.05f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	pitch += yoffset;
-	yaw += xoffset;
-
-	if (pitch > 89.0f)
-	{
-		pitch = 89.0f;
-	}
-
-	if (pitch < -89.0f)
-	{
-		pitch = -89.0f;
-	}
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-	front.y = sin(glm::radians(pitch));
-	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-
-	camera_front = glm::vec3(0.0f, 0.0f, -1.0f) + glm::normalize(front);
 }
 
-void scale_callback(GLFWwindow * window, double xoffset, double yoffset) 
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset) 
 {
-	if (fov >= 1.0f && fov <= 45.0f)
+	if (nullptr != camera_main)
 	{
-		fov -= yoffset;
+		camera_main->scroll_callback(window, xoffset, yoffset);
 	}
-	if (fov <= 1.0f)
-	{
-		fov = 1.0f;
-	}
-	if (fov > 45.0f)
-	{
-		fov = 45.0f;
-	}
+}
+
+void key_callback(GLFWwindow * window, int key, int scancode, int action, int mods)
+{
+	//if (nullptr != camera_main)
+	//{
+	//	camera_main->key_callback(window, key, scancode, action, mods);
+	//}
 }
