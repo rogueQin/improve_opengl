@@ -65,18 +65,6 @@ unsigned int indices[] = {
 	22,23,20
 };
 
-glm::vec3 cube_pos_list[] = {
-	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(5.0f, 5.0f, -5.0f),
-	glm::vec3(-5.0f, 5.0f, -5.0f),
-	glm::vec3(-5.0f, -5.0f, -5.0f),
-	glm::vec3(5.0f, -5.0f, -5.0f),
-	glm::vec3(5.0f, 5.0f, 5.0f),
-	glm::vec3(-5.0f, 5.0f, 5.0f),
-	glm::vec3(-5.0f, -5.0f, 5.0f),
-	glm::vec3(5.0f, -5.0f, 5.0f)
-};
-
 Camera * camera_main;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -117,7 +105,7 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -133,7 +121,7 @@ int main()
 	// 声明一个顶点数组对象
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
-	// 生命一个EBO
+	// 声明一个EBO
 	unsigned int EBO;
 	glGenBuffers(1, &EBO);
 
@@ -146,7 +134,7 @@ int main()
 		// EBO数据
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+	
 		// 连接顶点属性
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
@@ -159,61 +147,12 @@ int main()
 	glBindVertexArray(0);
 	
 
-	// 创建Texture缓存对象
-	unsigned int texture_wall, texture_face;
-	int width, height, nrChanels;
 
-	glGenTextures(1, &texture_wall);
-	glBindTexture(GL_TEXTURE_2D, texture_wall);
-
-	// 为当前绑定的纹理对象设置环绕方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// 加载纹理
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data_wall = stbi_load("../LearnOpenGL/res/container.jpg", &width, &height, &nrChanels, 0);
-	if (data_wall)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_wall);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture!" << std::endl;
-	}
-	stbi_image_free(data_wall);
-
-
-	glGenTextures(1, &texture_face);
-	glBindTexture(GL_TEXTURE_2D, texture_face);
-
-	// 为当前绑定的纹理对象设置环绕方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	unsigned char* data_face = stbi_load("../LearnOpenGL/res/awesomeface.png", &width, &height, &nrChanels, 0);
-	if (data_face)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_face);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture!" << std::endl;
-	}
-	stbi_image_free(data_face);
 
 	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 	shader->use();
-	shader->setInt("fallTexture", 0);
-	shader->setInt("faceTexture", 1);
+	//shader->setInt("fallTexture", 0);
+	//shader->setInt("faceTexture", 1);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -237,26 +176,24 @@ int main()
 		glm::mat4 projection = camera_main->getProjection();
 		shader->setMatrix4f("projection", projection);
 
-		for (int i = 0; i < 9; i++)
-		{
-			// 模型矩阵
-			glm::mat4 trans = glm::mat4(1.0f);
-			trans = glm::translate(trans, cube_pos_list[i]);
-			trans = glm::rotate(trans, glm::radians(-45.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-			trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-		
-			shader->setMatrix4f("transform", trans);
-			shader->use();
+		//for (int i = 0; i < 9; i++)
+		//{
+		//	// 模型矩阵
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture_wall);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, texture_face);
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		shader->setMatrix4f("transform", trans);
+		shader->use();
 
-			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-		}
+		//	glActiveTexture(GL_TEXTURE0);
+		//	glBindTexture(GL_TEXTURE_2D, texture_wall);
+		//	glActiveTexture(GL_TEXTURE1);
+		//	glBindTexture(GL_TEXTURE_2D, texture_face);
+
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+		//}
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
