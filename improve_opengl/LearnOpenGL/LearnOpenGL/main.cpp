@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Camera.h"
 
 
 const int screen_width = 800;
@@ -66,20 +67,27 @@ unsigned int indices[] = {
 
 glm::vec3 cube_pos_list[] = {
 	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(1.0f, 1.0f, -15.0f),
-	glm::vec3(-1.0f, 1.0f, -14.0f),
-	glm::vec3(-1.0f, -1.0f, -13.0f),
-	glm::vec3(1.0f, -1.0f, -12.0f),
-	glm::vec3(2.0f, 2.0f, -11.0f),
-	glm::vec3(2.0f, -2.0f, -10.0f),
-	glm::vec3(-2.0f, -2.0f, -9.0f),
-	glm::vec3(-2.0f, 2.0f, -8.0f),
-	glm::vec3(3.0f, 3.0f, -7.0f)
+	glm::vec3(5.0f, 5.0f, -5.0f),
+	glm::vec3(-5.0f, 5.0f, -5.0f),
+	glm::vec3(-5.0f, -5.0f, -5.0f),
+	glm::vec3(5.0f, -5.0f, -5.0f),
+	glm::vec3(5.0f, 5.0f, 5.0f),
+	glm::vec3(-5.0f, 5.0f, 5.0f),
+	glm::vec3(-5.0f, -5.0f, 5.0f),
+	glm::vec3(5.0f, -5.0f, 5.0f)
 };
+
+Camera * camera_main;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow * window);
+
+void key_callback(GLFWwindow * window, int key, int scancode, int actin, int mods);
+
+void mouse_callback(GLFWwindow * window, double xpos, double ypos);
+
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
 int main() 
 {
@@ -109,7 +117,16 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
+
+	glEnable(GL_DEPTH_TEST);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetKeyCallback(window, key_callback);
+	//glfwSetScrollCallback(window, camera_main->scroll_callback);
+
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
@@ -193,46 +210,42 @@ int main()
 	}
 	stbi_image_free(data_face);
 
-
 	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 	shader->use();
 	shader->setInt("fallTexture", 0);
 	shader->setInt("faceTexture", 1);
 
-
-	glEnable(GL_DEPTH_TEST);
-
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
 		glfwPollEvents();
+		
 		// 处理输入事件 
 		processInput(window);
+
+		camera_main->update();
 
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 		// 观察矩阵
-		glm::mat4 view = glm::mat4(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		glm::mat4 view = camera_main->getView();
+		shader->setMatrix4f("view", view);
 
 		// 投影矩阵
-		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), ((float)screen_width) / ((float)screen_height), 0.1f, 100.0f);
+		glm::mat4 projection = camera_main->getProjection();
+		shader->setMatrix4f("projection", projection);
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 9; i++)
 		{
 			// 模型矩阵
 			glm::mat4 trans = glm::mat4(1.0f);
 			trans = glm::translate(trans, cube_pos_list[i]);
 			trans = glm::rotate(trans, glm::radians(-45.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-			trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f)); // (float)glfwGetTime()
+			trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
 		
 			shader->setMatrix4f("transform", trans);
-			shader->setMatrix4f("view", view);
-			shader->setMatrix4f("projection", projection);
 			shader->use();
 
 			glActiveTexture(GL_TEXTURE0);
@@ -268,4 +281,32 @@ void processInput(GLFWwindow * window)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
+	if (nullptr != camera_main)
+	{
+		camera_main->input_callback(window);
+	}
+}
+
+void mouse_callback(GLFWwindow * window, double xpos, double ypos)
+{
+	if (nullptr != camera_main)
+	{
+		camera_main->mouse_callback(window, xpos, ypos);
+	}
+}
+
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset) 
+{
+	if (nullptr != camera_main)
+	{
+		camera_main->scroll_callback(window, xoffset, yoffset);
+	}
+}
+
+void key_callback(GLFWwindow * window, int key, int scancode, int action, int mods)
+{
+	//if (nullptr != camera_main)
+	//{
+	//	camera_main->key_callback(window, key, scancode, action, mods);
+	//}
 }
