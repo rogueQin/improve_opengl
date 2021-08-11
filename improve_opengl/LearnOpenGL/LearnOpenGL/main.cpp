@@ -77,7 +77,7 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
-int main_VBO_VAO_EBO() 
+int main() 
 {
 	// 初始化GLFW窗口
 	glfwInit();
@@ -145,6 +145,9 @@ int main_VBO_VAO_EBO()
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6* sizeof(GLfloat)));
 		glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
+	
+
+
 
 	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 	shader->use();
@@ -201,89 +204,6 @@ int main_VBO_VAO_EBO()
 	delete shader;
 
 	glfwTerminate();
-	return 0;
-}
-
-GLuint VAO;
-GLuint Buffer;
-const GLuint NumVertices = 6;
-Shader* shader;
-
-void init() 
-{
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-	GLfloat vertices[NumVertices][2] = {
-		{-0.90, -0.90},
-		{0.85, -0.90},
-		{-0.90, 0.85},
-		{0.90, -0.85},
-		{0.90, 0.90},
-		{-0.85, 0.90}
-	};
-	glGenBuffers(1, &Buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, Buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
-	shader->use();
-}
-
-void display() 
-{
-	glClear(GL_COLOR_BUFFER_BIT);
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
-	glFlush();
-}
-
-int main() 
-{
-	// 初始化GLFW窗口
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// 创建GLFW窗口
-	GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "LearnOpenGL", NULL, NULL);
-	if (window == NULL)
-	{
-		std::cout << "Failed to create GLFW window!" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-
-	// 初始化GLAD
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD!" << std::endl;
-		return -1;
-	}
-
-	glViewport(0, 0, 800, 600);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	init();
-
-	while (!glfwWindowShouldClose(window))
-	{
-		// 检查并调用事件
-		glfwPollEvents();
-		// 处理输入事件 
-		processInput(window);
-
-		display();
-
-		// 交换缓冲区
-		glfwSwapBuffers(window);
-	}
-
-	glfwTerminate();
-
 	return 0;
 }
 
