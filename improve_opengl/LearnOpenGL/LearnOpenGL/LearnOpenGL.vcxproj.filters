@@ -41,6 +41,9 @@
     <None Include="res\04_transformation.node">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_light.fs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">

@@ -113,19 +113,19 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
-	//glfwSetScrollCallback(window, camera_main->scroll_callback);
 
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
 	glGenBuffers(1, &VBO);
 	// 声明一个顶点数组对象
-	GLuint VAO;
-	glGenVertexArrays(1, &VAO);
+	GLuint VAO_obj;
+	glGenVertexArrays(1, &VAO_obj);
 	// 声明一个EBO
 	unsigned int EBO;
 	glGenBuffers(1, &EBO);
 
-	glBindVertexArray(VAO);
+	// cube obj
+	glBindVertexArray(VAO_obj);
 		// 设置顶点缓冲对象缓冲区类型
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		// 向缓冲区中写入数据
@@ -139,20 +139,26 @@ int main()
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
+		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		//glEnableVertexAttribArray(1);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6* sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
+		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6* sizeof(GLfloat)));
+		//glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
-	
 
+	// light
+	GLuint VAO_light;
+	glGenVertexArrays(1, &VAO_light);
+	glBindVertexArray(VAO_light);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
 
-	Shader* shader = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
-	shader->use();
-	//shader->setInt("fallTexture", 0);
-	//shader->setInt("faceTexture", 1);
+	Shader* shader_light = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader_light.fs");
+	Shader* shader_obj = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");	
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -170,38 +176,42 @@ int main()
 
 		// 观察矩阵
 		glm::mat4 view = camera_main->getView();
-		shader->setMatrix4f("view", view);
-
 		// 投影矩阵
 		glm::mat4 projection = camera_main->getProjection();
-		shader->setMatrix4f("projection", projection);
+		
+		shader_light->use();
+		shader_light->setMatrix4f("view", view);
+		shader_light->setMatrix4f("projection", projection);
 
-		//for (int i = 0; i < 9; i++)
-		//{
-		//	// 模型矩阵
-
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-		shader->setMatrix4f("transform", trans);
-		shader->use();
-
-		//	glActiveTexture(GL_TEXTURE0);
-		//	glBindTexture(GL_TEXTURE_2D, texture_wall);
-		//	glActiveTexture(GL_TEXTURE1);
-		//	glBindTexture(GL_TEXTURE_2D, texture_face);
-
-		glBindVertexArray(VAO);
+		glm::mat4 trans_light = glm::mat4(1.0f);
+		trans_light = glm::translate(trans_light, glm::vec3(2.0f, 1.0f, 2.0f));
+		shader_light->setMatrix4f("transform", trans_light);
+		glBindVertexArray(VAO_light);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
-		//}
+
+
+		shader_obj->use();
+		shader_obj->setMatrix4f("view", view);
+		shader_obj->setMatrix4f("projection", projection);
+		glm::mat4 trans_obj = glm::mat4(1.0f);
+		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		shader_obj->setMatrix4f("transform", trans_obj);
+		shader_obj->setVec3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		shader_obj->setVec3f("objColor", glm::vec3(1.0f, 0.5f, 0.3f));
+		glBindVertexArray(VAO_obj);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
 
-	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &VAO_obj);
+	glDeleteVertexArrays(1, &VAO_light);
 	glDeleteBuffers(1, &VBO);
-	delete shader;
+	//delete shader_obj;
+	delete shader_light;
 
 	glfwTerminate();
 	return 0;
@@ -242,8 +252,12 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
 
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mods)
 {
-	//if (nullptr != camera_main)
-	//{
-	//	camera_main->key_callback(window, key, scancode, action, mods);
-	//}
+	if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
 }

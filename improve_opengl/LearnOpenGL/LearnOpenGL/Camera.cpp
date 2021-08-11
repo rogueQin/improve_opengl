@@ -55,6 +55,7 @@ void Camera::mouse_callback(GLFWwindow * window, double xpos, double ypos)
 		this->first_mounse = false;
 		this->lastX = xpos;
 		this->lastY = ypos;
+		return;
 	}
 
 	float xoffset = xpos - this->lastX;
