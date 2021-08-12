@@ -108,11 +108,11 @@ int main()
 	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
 
 	glEnable(GL_DEPTH_TEST);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetKeyCallback(window, key_callback);
+	//glfwSetCursorPosCallback(window, mouse_callback);
+	//glfwSetScrollCallback(window, scroll_callback);
+	//glfwSetKeyCallback(window, key_callback);
 
 	// 声明一个顶点缓冲对象
 	GLuint VBO;
@@ -197,7 +197,12 @@ int main()
 		glm::mat4 trans_obj = glm::mat4(1.0f);
 		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
 		shader_obj->setMatrix4f("transform", trans_obj);
-		shader_obj->setVec3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+
+		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+		float ambient_strength = 0.1f;
+		glm::vec3 ambient = light_color * ambient_strength;
+
+		shader_obj->setVec3f("lightColor", ambient);
 		shader_obj->setVec3f("objColor", glm::vec3(1.0f, 0.5f, 0.3f));
 		glBindVertexArray(VAO_obj);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
