@@ -115,3 +115,9 @@ void Shader::setMatrix4f(const std::string &name, glm::mat4 transform) const
 	// 参数四 : 矩阵数据
 	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(transform));
 }
+
+void Shader::setVec3f(const std::string name, glm::vec3 vec)const 
+{
+	GLuint uniformLocation = glGetUniformLocation(ID, name.c_str());
+	glUniform3f(uniformLocation, vec.x, vec.y, vec.z);
+}
