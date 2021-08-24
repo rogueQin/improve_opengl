@@ -206,7 +206,7 @@ int main()
 		shader_obj->setMatrix4f("view", view);
 		shader_obj->setMatrix4f("projection", projection);
 		glm::mat4 trans_obj = glm::mat4(1.0f);
-		trans_obj = glm::scale(trans_obj, glm::vec3(0.8f));
+		trans_obj = glm::scale(trans_obj, glm::vec3(0.8f, 1.0f, 1.2f));
 		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
 		shader_obj->setMatrix4f("transform", trans_obj);
 
