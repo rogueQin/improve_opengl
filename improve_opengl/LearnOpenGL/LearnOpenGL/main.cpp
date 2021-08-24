@@ -123,7 +123,7 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(-1.0f, 1.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
 
  	glEnable(GL_DEPTH_TEST);
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -194,7 +194,7 @@ int main()
 		shader_light->setMatrix4f("projection", projection);
 
 		glm::mat4 trans_light = glm::mat4(1.0f);
-		//trans_light = glm::translate(trans_light, glm::vec3(2.0f, 1.0f, 2.0f));
+		trans_light = glm::translate(trans_light, glm::vec3(2.0f, 2.0f, 2.0f));
 		shader_light->setMatrix4f("transform", trans_light);
 		glBindVertexArray(VAO_light);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -206,8 +206,8 @@ int main()
 		shader_obj->setMatrix4f("view", view);
 		shader_obj->setMatrix4f("projection", projection);
 		glm::mat4 trans_obj = glm::mat4(1.0f);
-		trans_obj = glm::scale(trans_obj, glm::vec3(0.2f));
-		//trans_obj = glm::rotate(trans_obj, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+		trans_obj = glm::scale(trans_obj, glm::vec3(0.8f));
+		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
 		shader_obj->setMatrix4f("transform", trans_obj);
 
 		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);

@@ -14,7 +14,7 @@ void main()
 {
 	float ambientStrength = 0.1f;
 
-	vec3 lightDir = normalize(lightPos - FragPos);
+	vec3 lightDir = normalize(lightPos);
 
 	float diff = max(dot(Normal, lightDir), 0.0);
 
