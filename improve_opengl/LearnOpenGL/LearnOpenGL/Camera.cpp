@@ -21,6 +21,11 @@ void Camera::setCameraPosition(glm::vec3 position)
 	this->camera_pos = position;
 }
 
+glm::vec3 Camera::getCameraPosition()
+{
+	return this->camera_pos;
+}
+
 void Camera::setCameraFront(glm::vec3 front) 
 {
 	this->camera_front = front;

@@ -193,9 +193,14 @@ int main()
 		shader_light->setMatrix4f("view", view);
 		shader_light->setMatrix4f("projection", projection);
 
+		glm::vec3 light_color = glm::vec3(sin(glfwGetTime() * 2.0f), sin(glfwGetTime() * 0.7f), sin(glfwGetTime() * 1.3f));
+		glm::vec3 light_pos = glm::vec3(100.0f, 100.0f, 100.0f);
+
 		glm::mat4 trans_light = glm::mat4(1.0f);
-		trans_light = glm::translate(trans_light, glm::vec3(2.0f, 2.0f, 2.0f));
+		trans_light = glm::translate(trans_light, light_pos);
 		shader_light->setMatrix4f("transform", trans_light);
+
+		shader_light->setVec3f("lightColor", light_color);
 		glBindVertexArray(VAO_light);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
@@ -203,7 +208,6 @@ int main()
 
 		shader_obj->use();
 		
-
 		shader_obj->setMatrix4f("view", view);
 		shader_obj->setMatrix4f("projection", projection);
 		glm::mat4 trans_obj = glm::mat4(1.0f);
@@ -211,13 +215,22 @@ int main()
 		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime() * 0.5f, glm::vec3(1.0f, -0.5f, -1.0f));
 		shader_obj->setMatrix4f("transform", trans_obj);
 
-		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 light_pos = glm::normalize(glm::vec3(3.0f, 3.0f, 3.0f));
+		shader_obj->setVec3f("viewPos", camera_main->getCameraPosition());
+		// 材质
+		shader_obj->setVec3f("material.ambient", glm::vec3(1.0f, 0.5f, 0.3f));
+		shader_obj->setVec3f("material.diffuse", glm::vec3(1.0f, 0.5f, 0.3f));
+		shader_obj->setVec3f("material.specular", glm::vec3(0.5f));
+		shader_obj->setFloat("material.shininess", 32.0f);
+		
+		// 灯光
+		glm::vec3 light_ambient_color = light_color * glm::vec3(0.2f);
+		glm::vec3 light_diffuse_color = light_color * glm::vec3(0.5f);
+		glm::vec3 light_specular_color = light_color;
+		shader_obj->setVec3f("light.position", light_pos);
+		shader_obj->setVec3f("light.ambient", light_ambient_color);
+		shader_obj->setVec3f("light.diffuse", light_diffuse_color);
+		shader_obj->setVec3f("light.specular", light_specular_color);
 
-		shader_obj->setVec3f("lightPos", light_pos);
-		shader_obj->setVec3f("lightColor", light_color);
-		shader_obj->setVec3f("objColor", glm::vec3(1.0f, 0.5f, 0.31f));
-		shader_obj->setVec3f("viewPos", glm::vec3(0.0f, 0.0f, 3.0f));
 		glBindVertexArray(VAO_obj);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
