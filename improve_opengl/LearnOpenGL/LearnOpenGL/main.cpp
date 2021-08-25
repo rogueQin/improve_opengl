@@ -208,11 +208,11 @@ int main()
 		shader_obj->setMatrix4f("projection", projection);
 		glm::mat4 trans_obj = glm::mat4(1.0f);
 		trans_obj = glm::scale(trans_obj, glm::vec3(0.8f, 0.8f, 0.8f));
-		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
+		trans_obj = glm::rotate(trans_obj, (float)glfwGetTime() * 0.5f, glm::vec3(1.0f, -0.5f, -1.0f));
 		shader_obj->setMatrix4f("transform", trans_obj);
 
 		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 light_pos = glm::normalize(glm::vec3(1.2f, 1.0f, 2.0f));
+		glm::vec3 light_pos = glm::normalize(glm::vec3(3.0f, 3.0f, 3.0f));
 
 		shader_obj->setVec3f("lightPos", light_pos);
 		shader_obj->setVec3f("lightColor", light_color);
