@@ -46,6 +46,8 @@ public:
 
 	void setCameraPosition(glm::vec3 position);
 
+	glm::vec3 getCameraPosition();
+
 	void setCameraFront(glm::vec3 front);
 
 	void setCameraUp(glm::vec3 up);
