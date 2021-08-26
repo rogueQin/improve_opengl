@@ -170,11 +170,11 @@ int main()
 	Shader* shader_light = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader* shader_obj = new Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");	
 
-
-	unsigned int texture;
+	// 漫反射贴图
+	unsigned int texture_diffuse, texture_specular;
 	int width, height, nrChanels;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glGenTextures(1, &texture_diffuse);
+	glBindTexture(GL_TEXTURE_2D, texture_diffuse);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -189,7 +189,28 @@ int main()
 	}
 	else
 	{
-		std::cout << "Failed to load texture!" << std::endl;
+		std::cout << "Failed to load diffuse texture!" << std::endl;
+	}
+	stbi_image_free(data);
+
+	// 镜面光贴图
+	glGenTextures(1, &texture_specular);
+	glBindTexture(GL_TEXTURE_2D, texture_specular);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("../LearnOpenGL/res/container2_specular.png", &width, &height, &nrChanels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load specular texture!" << std::endl;
 	}
 	stbi_image_free(data);
 
@@ -206,6 +227,11 @@ int main()
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_diffuse);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture_specular);
 
 		// 观察矩阵
 		glm::mat4 view = camera_main->getView();
@@ -229,7 +255,6 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
-
 		shader_obj->use();
 		
 		shader_obj->setMatrix4f("view", view);
@@ -243,8 +268,9 @@ int main()
 		// 材质
 		//shader_obj->setVec3f("material.ambient", glm::vec3(1.0f, 0.5f, 0.3f));
 		//shader_obj->setVec3f("material.diffuse", glm::vec3(1.0f, 0.5f, 0.3f));
+		//shader_obj->setVec3f("material.specular", glm::vec3(0.5f));
 		shader_obj->setInt("material.diffuse", 0);
-		shader_obj->setVec3f("material.specular", glm::vec3(0.5f));
+		shader_obj->setInt("material.specular", 1);
 		shader_obj->setFloat("material.shininess", 32.0f);
 		
 		// 灯光
