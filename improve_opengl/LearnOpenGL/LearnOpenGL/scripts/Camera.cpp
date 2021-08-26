@@ -10,6 +10,10 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, float fov, float ne
 	this->near = near;
 	this->far = far;
 	this->mouse_sensitivity = 0.05f;
+	this->first_mounse = true;
+
+	this->pitch = 0;
+	this->yaw = -90.0f;
 }
 
 Camera::~Camera() 
@@ -75,20 +79,20 @@ void Camera::mouse_callback(GLFWwindow * window, double xpos, double ypos)
 	this->pitch += yoffset;
 	this->yaw += xoffset;
 
-	if (pitch > 89.0f)
+	if (this->pitch > 89.0f)
 	{
-		pitch = 89.0f;
+		this->pitch = 89.0f;
 	}
 
-	if (pitch < -89.0f)
+	if (this->pitch < -89.0f)
 	{
-		pitch = -89.0f;
+		this->pitch = -89.0f;
 	}
 
 	glm::vec3 front;
-	front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-	front.y = sin(glm::radians(pitch));
-	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+	front.x = cos(glm::radians(this->pitch)) * cos(glm::radians(this->yaw));
+	front.y = sin(glm::radians(this->pitch));
+	front.z = cos(glm::radians(this->pitch)) * sin(glm::radians(this->yaw));
 
 	this->camera_front = glm::normalize(front);
 }
