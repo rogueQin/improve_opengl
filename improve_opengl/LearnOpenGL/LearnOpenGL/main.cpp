@@ -257,7 +257,7 @@ int main()
 		//glm::vec3 light_color = glm::vec3(sin(glfwGetTime() * 2.0f), sin(glfwGetTime() * 0.7f), sin(glfwGetTime() * 1.3f));
 		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec3 light_pos = glm::vec3(3.0f, 3.0f, 3.0f);
-		glm::vec3 light_direction = glm::vec3(-100.0f, -100.0f, 0.0f);
+		glm::vec3 light_direction = glm::vec3(-100.0f, -100.0f, -100.0f);
 
 		glm::mat4 trans_light = glm::mat4(1.0f);
 		trans_light = glm::translate(trans_light, light_pos);
@@ -267,6 +267,11 @@ int main()
 		glBindVertexArray(VAO_light);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+
+		// 灯光
+		glm::vec3 light_ambient_color = light_color * glm::vec3(0.2f);
+		glm::vec3 light_diffuse_color = light_color * glm::vec3(0.5f);
+		glm::vec3 light_specular_color = light_color;
 
 		for (int i = 0; i < 9; i++)
 		{
@@ -287,23 +292,30 @@ int main()
 			shader_obj->setInt("material.diffuse", 0);
 			shader_obj->setInt("material.specular", 1);
 			shader_obj->setFloat("material.shininess", 32.0f);
-		
-			// 灯光
-			glm::vec3 light_ambient_color = light_color * glm::vec3(0.2f);
-			glm::vec3 light_diffuse_color = light_color * glm::vec3(0.5f);
-			glm::vec3 light_specular_color = light_color;
+			
+			// 平行光
 			//shader_obj->setVec3f("directionLight.direction", light_direction);
 			//shader_obj->setVec3f("directionLight.ambient", light_ambient_color);
 			//shader_obj->setVec3f("directionLight.diffuse", light_diffuse_color);
 			//shader_obj->setVec3f("directionLight.specular", light_specular_color);
+			
+			// 点光源
+			//shader_obj->setVec3f("pointLight.position", light_pos);
+			//shader_obj->setVec3f("pointLight.ambient", light_ambient_color);
+			//shader_obj->setVec3f("pointLight.diffuse", light_diffuse_color);
+			//shader_obj->setVec3f("pointLight.specular", light_specular_color);
+			//shader_obj->setFloat("pointLight.constant", 1.0f);
+			//shader_obj->setFloat("pointLight.linear", 0.09f);
+			//shader_obj->setFloat("pointLight.quadratic", 0.032f);
 
-			shader_obj->setVec3f("pointLight.position", light_pos);
-			shader_obj->setVec3f("pointLight.ambient", light_ambient_color);
-			shader_obj->setVec3f("pointLight.diffuse", light_diffuse_color);
-			shader_obj->setVec3f("pointLight.specular", light_specular_color);
-			shader_obj->setFloat("pointLight.constant", 1.0f);
-			shader_obj->setFloat("pointLight.linear", 0.09f);
-			shader_obj->setFloat("pointLight.quadratic", 0.032f);
+			// 聚光灯
+			shader_obj->setVec3f("spotLight.position", light_pos);
+			shader_obj->setVec3f("spotLight.direction", light_direction);
+			shader_obj->setVec3f("spotLight.ambient", light_ambient_color);
+			shader_obj->setVec3f("spotLight.diffuse", light_diffuse_color);
+			shader_obj->setVec3f("spotLight.specular", light_specular_color);
+			shader_obj->setFloat("spotLight.cutOff", glm::cos(glm::radians(15.0f)));
+			
 
 			glBindVertexArray(VAO_obj);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
