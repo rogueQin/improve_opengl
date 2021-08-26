@@ -27,7 +27,7 @@
     <ClCompile Include="scripts\stb_image.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="scripts\Camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -52,10 +52,10 @@
     <ClInclude Include="scripts\stb_image.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="scripts\Config.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="scripts\Config.h">
+    <ClInclude Include="scripts\Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -67,6 +67,12 @@
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="res\05_coordinate_systems.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\container2.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\container2_specular.png">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>
