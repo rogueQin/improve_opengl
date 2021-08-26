@@ -10,8 +10,10 @@ struct Material{
 	float shininess; // 反光度
 };
 
+// 平行光
 struct Light{
-	vec3 position;
+	// vec3 position;
+	vec3 direction; // 
 	vec3 ambient; // 环境光照
 	vec3 diffuse; // 漫反射光照
 	vec3 specular; // 镜面光照
@@ -36,7 +38,7 @@ void main()
 
 	// diffuse
 	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(light.position - FragPos);
+	vec3 lightDir = normalize(-light.direction);
 	float diff = max(dot(norm, lightDir), 0.0f);
 	vec3 diffuse = light.diffuse * (diff * diffuseTexture);
 
