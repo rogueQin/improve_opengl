@@ -9,7 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.h"
 
-
 const int screen_width = 800;
 const int screen_height = 600;
 
@@ -75,6 +74,16 @@ glm::vec3 cube_pos_lit[] = {
 	glm::vec3(2.0f, -2.0f, -2.0f)
 };
 
+glm::vec3 light_pos_list[] = {
+	glm::vec3(3.0f, 3.0f, 0.0f),
+	glm::vec3(-3.0f, -3.0f, 0.0f),
+	glm::vec3(3.0f, -3.0f, 0.0f),
+	glm::vec3(-3.0f, 3.0f, 0.0f),
+
+	glm::vec3(0.0f, 5.0f, 0.0f),
+	glm::vec3(100.0f, 100.0f, 100.0f)
+};
+
 unsigned int indices[] = {
 	0,1,2,
 	2,3,0,
@@ -135,7 +144,7 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
 
  	glEnable(GL_DEPTH_TEST);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -250,28 +259,31 @@ int main()
 		// 投影矩阵
 		glm::mat4 projection = camera_main->getProjection();
 		
-		shader_light->use();
-		shader_light->setMatrix4f("view", view);
-		shader_light->setMatrix4f("projection", projection);
-
-		//glm::vec3 light_color = glm::vec3(sin(glfwGetTime() * 2.0f), sin(glfwGetTime() * 0.7f), sin(glfwGetTime() * 1.3f));
+		// 灯光obj
 		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 light_pos = glm::vec3(3.0f, 3.0f, 3.0f);
-		glm::vec3 light_direction = glm::vec3(-100.0f, -100.0f, -100.0f);
+		for (int i = 0; i < 6; i ++)
+		{
+			shader_light->use();
+			shader_light->setMatrix4f("view", view);
+			shader_light->setMatrix4f("projection", projection);
 
-		glm::mat4 trans_light = glm::mat4(1.0f);
-		trans_light = glm::translate(trans_light, light_pos);
-		shader_light->setMatrix4f("transform", trans_light);
+			glm::mat4 trans_light = glm::mat4(1.0f);
+			trans_light = glm::translate(trans_light, light_pos_list[i]);
+			shader_light->setMatrix4f("transform", trans_light);
 
-		shader_light->setVec3f("lightColor", light_color);
-		glBindVertexArray(VAO_light);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
+			shader_light->setVec3f("lightColor", light_color);
+			glBindVertexArray(VAO_light);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+		}
 
 		// 灯光
 		glm::vec3 light_ambient_color = light_color * glm::vec3(0.2f);
 		glm::vec3 light_diffuse_color = light_color * glm::vec3(0.5f);
 		glm::vec3 light_specular_color = light_color;
+
+		glm::vec3 direction_light_direction = glm::vec3(-100.0f, -100.0f, -100.0f);
+		glm::vec3 spot_light_direction = glm::vec3(0.0f, -100.0f, 0.0f);
 
 		for (int i = 0; i < 9; i++)
 		{
@@ -285,46 +297,46 @@ int main()
 			
 			shader_obj->setMatrix4f("transform", trans_obj);
 			shader_obj->setVec3f("viewPos", camera_main->getCameraPosition());
-			// 材质
+			// 材质颜色
 			//shader_obj->setVec3f("material.ambient", glm::vec3(1.0f, 0.5f, 0.3f));
 			//shader_obj->setVec3f("material.diffuse", glm::vec3(1.0f, 0.5f, 0.3f));
 			//shader_obj->setVec3f("material.specular", glm::vec3(0.5f));
+			// 材质贴图
 			shader_obj->setInt("material.diffuse", 0);
 			shader_obj->setInt("material.specular", 1);
 			shader_obj->setFloat("material.shininess", 32.0f);
 			
 			// 平行光
-			//shader_obj->setVec3f("directionLight.direction", light_direction);
-			//shader_obj->setVec3f("directionLight.ambient", light_ambient_color);
-			//shader_obj->setVec3f("directionLight.diffuse", light_diffuse_color);
-			//shader_obj->setVec3f("directionLight.specular", light_specular_color);
-			
+			shader_obj->setVec3f("directionLight.direction", direction_light_direction);
+			shader_obj->setVec3f("directionLight.ambient", light_ambient_color);
+			shader_obj->setVec3f("directionLight.diffuse", light_diffuse_color);
+			shader_obj->setVec3f("directionLight.specular", light_specular_color);
+
 			// 点光源
-			//shader_obj->setVec3f("pointLight.position", light_pos);
-			//shader_obj->setVec3f("pointLight.ambient", light_ambient_color);
-			//shader_obj->setVec3f("pointLight.diffuse", light_diffuse_color);
-			//shader_obj->setVec3f("pointLight.specular", light_specular_color);
-			//shader_obj->setFloat("pointLight.constant", 1.0f);
-			//shader_obj->setFloat("pointLight.linear", 0.09f);
-			//shader_obj->setFloat("pointLight.quadratic", 0.032f);
+			for (int j = 0; j < 4; j ++)
+			{
+				shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].position", light_pos_list[j]);
+				shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].ambient", light_ambient_color);
+				shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].diffuse", light_diffuse_color);
+				shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].specular", light_specular_color);
+				shader_obj->setFloat("pointLights[" + std::to_string(j) + "].constant", 1.0f);
+				shader_obj->setFloat("pointLights[" + std::to_string(j) + "].linear", 0.09f);
+				shader_obj->setFloat("pointLights[" + std::to_string(j) + "].quadratic", 0.032f);
+			}
 
 			// 聚光灯
-			shader_obj->setVec3f("spotLight.position", light_pos);
-			shader_obj->setVec3f("spotLight.direction", light_direction);
+			shader_obj->setVec3f("spotLight.position", light_pos_list[4]);
+			shader_obj->setVec3f("spotLight.direction", spot_light_direction);
 			shader_obj->setVec3f("spotLight.ambient", light_ambient_color);
 			shader_obj->setVec3f("spotLight.diffuse", light_diffuse_color);
 			shader_obj->setVec3f("spotLight.specular", light_specular_color);
 			shader_obj->setFloat("spotLight.cutOff", glm::cos(glm::radians(15.0f)));
 			shader_obj->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(20.0f)));
-			
-			
 
 			glBindVertexArray(VAO_obj);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 		}
-
-
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
