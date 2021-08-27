@@ -315,6 +315,8 @@ int main()
 			shader_obj->setVec3f("spotLight.diffuse", light_diffuse_color);
 			shader_obj->setVec3f("spotLight.specular", light_specular_color);
 			shader_obj->setFloat("spotLight.cutOff", glm::cos(glm::radians(15.0f)));
+			shader_obj->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(20.0f)));
+			
 			
 
 			glBindVertexArray(VAO_obj);
