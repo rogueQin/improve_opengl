@@ -25,7 +25,7 @@ private:
 	float last_frame = 0.0f;
 
 	float pitch = 0.0f;
-	float yaw = 0.0f;
+	float yaw = 90.0f;
 
 	float lastX = 0.0f;
 	float lastY = 0.0f;
