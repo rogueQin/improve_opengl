@@ -30,6 +30,9 @@
     <ClCompile Include="scripts\Camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="scripts\Mesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shader.fs">
@@ -56,6 +59,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="scripts\Camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\Mesh.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
