@@ -9,7 +9,11 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 	setupMesh();
 }
 
-void Mesh::Draw(Shader shader)
+Mesh::~Mesh()
+{
+}
+
+void Mesh::Draw(Shader &shader)
 {
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
@@ -49,7 +53,7 @@ void Mesh::setupMesh()
 	glBindVertexArray(VAO);
 		// 设置顶点缓冲对象缓冲区类型
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
 		// 顶点索引
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -57,12 +61,12 @@ void Mesh::setupMesh()
 
 		// 顶点
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertices), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
 		// 法线
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertices), (GLvoid*)offsetof(Vertex, Normal));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Normal));
 		// 贴图
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertices), (GLvoid*)offsetof(Vertex, TexCoords));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, TexCoords));
 	glBindVertexArray(0);
 }
