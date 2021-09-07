@@ -77,14 +77,27 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 // ¾Û¹âµÆ
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
+float near = 0.1f;
+float far = 100.0f;
+
+float linearizeDepth(float depth)
+{
+	float z = depth * 2.0f - 1.0f;
+	return (2.0f * near * far) / (far + near - z * (far - near));
+}
+
 void main()
 {	
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
 
+	float depth = linearizeDepth(gl_FragCoord.z) / far;
+
 	vec3 result = vec3(0.0f);
 	
-	result += calcDirectionLight(directionLight, normal, viewDir);
+	// result += calcDirectionLight(directionLight, normal, viewDir);
+	// result += vec3(gl_FragCoord.z);
+	result += vec3(depth);
 	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
 	// {
 	// 	result += calcPointLight(pointLights[i], normal, viewDir, FragPos);
