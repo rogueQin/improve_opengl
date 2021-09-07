@@ -70,6 +70,8 @@ uniform PointLight pointLights[POINT_LIGHT_COUNT];
 
 uniform SpotLight spotLight;
 
+uniform sampler2D testTexture;
+
 // 平行光
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir);
 // 点光源
@@ -91,20 +93,21 @@ void main()
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
 
-	float depth = linearizeDepth(gl_FragCoord.z) / far;
+	// float depth = linearizeDepth(gl_FragCoord.z) / far;
 
 	vec3 result = vec3(0.0f);
 	
 	// result += calcDirectionLight(directionLight, normal, viewDir);
 	// result += vec3(gl_FragCoord.z);
-	result += vec3(depth);
+	// result += vec3(texture(material.texture_diffuse1, TexCoords));
+	
 	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
 	// {
 	// 	result += calcPointLight(pointLights[i], normal, viewDir, FragPos);
 	// }
 	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
 
-	color = vec4(result, 1.0f);
+	color = vec4(vec3(texture(testTexture, TexCoords)), 1.0f);
 }
 
 // 平行光
