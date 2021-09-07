@@ -14,13 +14,13 @@ const int screen_width = 800;
 const int screen_height = 600;
 
 GLfloat vertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
 
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
 
 		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
@@ -117,6 +117,8 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
+unsigned int loadTexture(std::string fileName);
+
 int main() 
 {
 	// 初始化GLFW窗口
@@ -145,12 +147,15 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 10.0f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);
 
- 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	
+	glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -158,37 +163,56 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
 
+	// 声明一个顶点缓冲对象
+	GLuint VBO;
+	glGenBuffers(1, &VBO);
+	// 设置顶点缓冲对象缓冲区类型
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// 向缓冲区中写入数据
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	// light
+	GLuint VAO_cube, VAO_plane;
+	glGenVertexArrays(1, &VAO_cube);
+	glBindVertexArray(VAO_cube);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	//// 声明一个顶点缓冲对象
-	//GLuint VBO;
-	//glGenBuffers(1, &VBO);
-	//// 设置顶点缓冲对象缓冲区类型
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//// 向缓冲区中写入数据
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
 
-	//// light
-	//GLuint VAO_light;
-	//glGenVertexArrays(1, &VAO_light);
-	//	glBindVertexArray(VAO_light);
-	//	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
 
-	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	//	glEnableVertexAttribArray(0);
-	//glBindVertexArray(0);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
 
-	//Shader shader_light = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader_light.fs");
-	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");	
+	glGenVertexArrays(1, &VAO_plane);
+	glBindVertexArray(VAO_plane);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+
+	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
+	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wall.jpg");
+
+	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
+	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 
 	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
-		glfwPollEvents();
-		
-
+		glfwPollEvents();	
 
 		// 处理输入事件 
 		processInput(window);
@@ -197,122 +221,161 @@ int main()
 
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
 		// 观察矩阵
 		glm::mat4 view = camera_main->getView();
 		// 投影矩阵
 		glm::mat4 projection = camera_main->getProjection();
-		
-		//// 灯光obj
-		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-		//shader_light.use();
-		//shader_light.setMatrix4f("view", view);
-		//shader_light.setMatrix4f("projection", projection);
-		//glm::mat4 trans_light = glm::mat4(1.0f);
-		//trans_light = glm::translate(trans_light, light_pos_list[5]);
-		//shader_light.setMatrix4f("transform", trans_light);
-		//shader_light.setVec3f("lightColor", light_color);
-		//glBindVertexArray(VAO_light);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		//glBindVertexArray(0);
+		// 模型矩阵
+		glm::mat4 transform = glm::mat4(1.0f);
+		transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, 0.0f));
+		transform = glm::scale(transform, glm::vec3(30.0f, 0.1f, 30.0f));
 
-		glm::vec3 direction_light_direction = glm::vec3(-100.0f, -100.0f, -100.0f);
-		glm::vec3 light_ambient_color = light_color * glm::vec3(0.2f);
-		glm::vec3 light_diffuse_color = light_color * glm::vec3(0.5f);
-		glm::vec3 light_specular_color = light_color;
-
+		// 地面
+		glStencilMask(0x00);
 		shader_obj.use();
+		shader_obj.setMatrix4f("transform", transform);
 		shader_obj.setMatrix4f("view", view);
 		shader_obj.setMatrix4f("projection", projection);
-		glm::mat4 trans_obj = glm::mat4(1.0f);
-		//trans_obj = glm::translate(trans_obj, glm::vec3(0.0f, 0.0f, 0.0f));
-		trans_obj = glm::scale(trans_obj, glm::vec3(1.0f, 1.0f, 1.0f));
-		//trans_obj = glm::rotate(trans_obj, (float)glfwGetTime() * 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-		shader_obj.setMatrix4f("transform", trans_obj);
-		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
+		glBindVertexArray(VAO_plane);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, floor_texture);
+		shader_obj.setInt("testTexture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		shader_obj.setVec3f("directionLight.direction", direction_light_direction);
-		shader_obj.setVec3f("directionLight.ambient", light_ambient_color);
-		shader_obj.setVec3f("directionLight.diffuse", light_diffuse_color);
-		shader_obj.setVec3f("directionLight.specular", light_specular_color);
-		shader_obj.setFloat("material.shininess", 32.0f);
-
+		// cubs
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		glm::mat4 transform_cub = glm::mat4(1.0f);
+		shader_obj.use();
+		shader_obj.setMatrix4f("transform", transform_cub);
+		shader_obj.setMatrix4f("view", view);
+		shader_obj.setMatrix4f("projection", projection);
 		model.draw(shader_obj);
+		//glm::mat4 transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform_cub);
+		//shader_obj.setMatrix4f("view", view);
+		//shader_obj.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_obj.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform_cub);
+		//shader_obj.setMatrix4f("view", view);
+		//shader_obj.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_obj.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
-		// 灯光
-		//glm::vec3 light_ambient_color = light_color * glm::vec3(0.2f);
-		//glm::vec3 light_diffuse_color = light_color * glm::vec3(0.5f);
-		//glm::vec3 light_specular_color = light_color;
+		// cub outline
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
 
-		
-		//glm::vec3 spot_light_direction = glm::vec3(0.0f, -100.0f, 0.0f);
+		transform_cub = glm::mat4(1.0f);
+		transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
+		shader_stencil.use();
+		shader_stencil.setMatrix4f("transform", transform_cub);
+		shader_stencil.setMatrix4f("view", view);
+		shader_stencil.setMatrix4f("projection", projection);
+		shader_stencil.setFloat("outline", 0.1f);
 
-		//for (int i = 0; i < 9; i++)
-		//{
-		//	shader_obj->use();
-		//	shader_obj->setMatrix4f("view", view);
-		//	shader_obj->setMatrix4f("projection", projection);
-		//	glm::mat4 trans_obj = glm::mat4(1.0f);
-		//	trans_obj = glm::translate(trans_obj, cube_pos_lit[i]);
-		//	trans_obj = glm::scale(trans_obj, glm::vec3(1.0f, 1.0f, 1.0f));
-		//	trans_obj = glm::rotate(trans_obj, (float)glfwGetTime() * 0.5f, glm::vec3(1.0f, -0.5f, -1.0f));
-		//	
-		//	shader_obj->setMatrix4f("transform", trans_obj);
-		//	shader_obj->setVec3f("viewPos", camera_main->getCameraPosition());
-		//	// 材质颜色
-		//	//shader_obj->setVec3f("material.ambient", glm::vec3(1.0f, 0.5f, 0.3f));
-		//	//shader_obj->setVec3f("material.diffuse", glm::vec3(1.0f, 0.5f, 0.3f));
-		//	//shader_obj->setVec3f("material.specular", glm::vec3(0.5f));
-		//	// 材质贴图
-		//	shader_obj->setInt("material.diffuse", 0);
-		//	shader_obj->setInt("material.specular", 1);
-		//	shader_obj->setFloat("material.shininess", 32.0f);
-		//	
-		//	// 平行光
-		//	shader_obj->setVec3f("directionLight.direction", direction_light_direction);
-		//	shader_obj->setVec3f("directionLight.ambient", light_ambient_color);
-		//	shader_obj->setVec3f("directionLight.diffuse", light_diffuse_color);
-		//	shader_obj->setVec3f("directionLight.specular", light_specular_color);
+		model.draw(shader_stencil);
+		//glDisable(GL_DEPTH_TEST);
+		//transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
+		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
+		//shader_stencil.use();
+		//shader_stencil.setMatrix4f("transform", transform_cub);
+		//shader_stencil.setMatrix4f("view", view);
+		//shader_stencil.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_stencil.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		//	// 点光源
-		//	for (int j = 0; j < 4; j ++)
-		//	{
-		//		shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].position", light_pos_list[j]);
-		//		shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].ambient", light_ambient_color);
-		//		shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].diffuse", light_diffuse_color);
-		//		shader_obj->setVec3f("pointLights[" + std::to_string(j) + "].specular", light_specular_color);
-		//		shader_obj->setFloat("pointLights[" + std::to_string(j) + "].constant", 1.0f);
-		//		shader_obj->setFloat("pointLights[" + std::to_string(j) + "].linear", 0.09f);
-		//		shader_obj->setFloat("pointLights[" + std::to_string(j) + "].quadratic", 0.032f);
-		//	}
+		//transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
+		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
+		//shader_stencil.use();
+		//shader_stencil.setMatrix4f("transform", transform_cub);
+		//shader_stencil.setMatrix4f("view", view);
+		//shader_stencil.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_stencil.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		//	// 聚光灯
-		//	shader_obj->setVec3f("spotLight.position", light_pos_list[4]);
-		//	shader_obj->setVec3f("spotLight.direction", spot_light_direction);
-		//	shader_obj->setVec3f("spotLight.ambient", light_ambient_color);
-		//	shader_obj->setVec3f("spotLight.diffuse", light_diffuse_color);
-		//	shader_obj->setVec3f("spotLight.specular", light_specular_color);
-		//	shader_obj->setFloat("spotLight.cutOff", glm::cos(glm::radians(15.0f)));
-		//	shader_obj->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(20.0f)));
-
-		//	glBindVertexArray(VAO_obj);
-		//	glDrawArrays(GL_TRIANGLES, 0, 36);
-		//	glBindVertexArray(0);
-		//}
+		glStencilMask(0xFF);
+		//glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
 
-	//glDeleteVertexArrays(1, &VAO_light);
-	//glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &VAO_cube);
+	glDeleteVertexArrays(1, &VAO_plane);
+	glDeleteBuffers(1, &VBO);
 	//delete &shader_obj;
 	//delete &shader_light;
 
 	glfwTerminate();
 	return 0;
+}
+
+unsigned int loadTexture(std::string fileName)
+{
+	std::string file_path = fileName;
+
+	unsigned int texture;
+	int width, height, nrChanels;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	unsigned char* data = stbi_load(file_path.c_str(), &width, &height, &nrChanels, 0);
+	if (data)
+	{
+		GLenum format;
+		if (nrChanels == 1)
+		{
+			format = GL_RED;
+		}
+		else if (nrChanels == 3)
+		{
+			format = GL_RGB;
+		}
+		else if (nrChanels == 4)
+		{
+			format = GL_RGBA;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load diffuse texture!" << std::endl;
+	}
+	stbi_image_free(data);
+
+	return texture;
 }
 
 void framebuffer_size_callback(GLFWwindow * window, int width, int height)
