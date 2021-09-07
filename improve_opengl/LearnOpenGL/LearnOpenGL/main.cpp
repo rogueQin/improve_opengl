@@ -145,11 +145,13 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.01f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 10.0f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);
 
  	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
+
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -225,8 +227,8 @@ int main()
 		shader_obj.setMatrix4f("projection", projection);
 		glm::mat4 trans_obj = glm::mat4(1.0f);
 		//trans_obj = glm::translate(trans_obj, glm::vec3(0.0f, 0.0f, 0.0f));
-		//trans_obj = glm::scale(trans_obj, glm::vec3(1.0f, 1.0f, 1.0f));
-		//trans_obj = glm::rotate(trans_obj, (float)glfwGetTime() * 0.5f, glm::vec3(1.0f, -0.5f, -1.0f));
+		trans_obj = glm::scale(trans_obj, glm::vec3(1.0f, 1.0f, 1.0f));
+		//trans_obj = glm::rotate(trans_obj, (float)glfwGetTime() * 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
 		shader_obj.setMatrix4f("transform", trans_obj);
 		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
 
