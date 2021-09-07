@@ -147,7 +147,7 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);
 
@@ -204,10 +204,10 @@ int main()
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
 	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wall.jpg");
 
-	Shader shader_stencil = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader_light.fs");
+	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 
-	//Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -248,59 +248,75 @@ int main()
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 		glm::mat4 transform_cub = glm::mat4(1.0f);
-		transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
 		shader_obj.use();
 		shader_obj.setMatrix4f("transform", transform_cub);
 		shader_obj.setMatrix4f("view", view);
 		shader_obj.setMatrix4f("projection", projection);
-		glBindVertexArray(VAO_cube);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, cube_texture);
-		shader_obj.setInt("testTexture", 1);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		model.draw(shader_obj);
+		//glm::mat4 transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform_cub);
+		//shader_obj.setMatrix4f("view", view);
+		//shader_obj.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_obj.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		transform_cub = glm::mat4(1.0f);
-		transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform_cub);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
-		glBindVertexArray(VAO_cube);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, cube_texture);
-		shader_obj.setInt("testTexture", 1);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform_cub);
+		//shader_obj.setMatrix4f("view", view);
+		//shader_obj.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_obj.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 		// cub outline
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
-		//glDisable(GL_DEPTH_TEST);
-		transform_cub = glm::mat4(1.0f);
-		transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
-		transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
-		shader_stencil.use();
-		shader_stencil.setMatrix4f("transform", transform_cub);
-		shader_stencil.setMatrix4f("view", view);
-		shader_stencil.setMatrix4f("projection", projection);
-		glBindVertexArray(VAO_cube);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, cube_texture);
-		shader_stencil.setInt("testTexture", 1);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		transform_cub = glm::mat4(1.0f);
-		transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
 		transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
 		shader_stencil.use();
 		shader_stencil.setMatrix4f("transform", transform_cub);
 		shader_stencil.setMatrix4f("view", view);
 		shader_stencil.setMatrix4f("projection", projection);
-		glBindVertexArray(VAO_cube);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, cube_texture);
-		shader_stencil.setInt("testTexture", 1);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		shader_stencil.setFloat("outline", 0.1f);
+
+		model.draw(shader_stencil);
+		//glDisable(GL_DEPTH_TEST);
+		//transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
+		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
+		//shader_stencil.use();
+		//shader_stencil.setMatrix4f("transform", transform_cub);
+		//shader_stencil.setMatrix4f("view", view);
+		//shader_stencil.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_stencil.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//transform_cub = glm::mat4(1.0f);
+		//transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
+		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
+		//shader_stencil.use();
+		//shader_stencil.setMatrix4f("transform", transform_cub);
+		//shader_stencil.setMatrix4f("view", view);
+		//shader_stencil.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_cube);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_stencil.setInt("testTexture", 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glStencilMask(0xFF);
 		//glEnable(GL_DEPTH_TEST);

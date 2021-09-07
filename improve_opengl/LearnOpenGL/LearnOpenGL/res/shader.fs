@@ -95,7 +95,7 @@ void main()
 
 	// float depth = linearizeDepth(gl_FragCoord.z) / far;
 
-	vec3 result = vec3(0.0f);
+	vec3 result = vec3(texture(material.texture_diffuse1, TexCoords));
 	
 	// result += calcDirectionLight(directionLight, normal, viewDir);
 	// result += vec3(gl_FragCoord.z);
@@ -107,7 +107,7 @@ void main()
 	// }
 	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
 
-	color = vec4(vec3(texture(testTexture, TexCoords)), 1.0f);
+	color = vec4(result, 1.0f);
 }
 
 // Æ½ÐÐ¹â

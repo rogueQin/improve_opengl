@@ -50,6 +50,9 @@
     <None Include="res\shader_light.fs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_light.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
