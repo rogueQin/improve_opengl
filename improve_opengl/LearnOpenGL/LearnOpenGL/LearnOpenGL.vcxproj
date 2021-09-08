@@ -141,6 +141,8 @@
     <None Include="res\04_transformation.node" />
     <None Include="res\shader.fs" />
     <None Include="res\shader.vs" />
+    <None Include="res\shader_blend.fs" />
+    <None Include="res\shader_blend.vs" />
     <None Include="res\shader_light.fs" />
     <None Include="res\shader_light.vs" />
   </ItemGroup>
@@ -158,6 +160,7 @@
     <Image Include="res\container.jpg" />
     <Image Include="res\container2.png" />
     <Image Include="res\container2_specular.png" />
+    <Image Include="res\grass.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

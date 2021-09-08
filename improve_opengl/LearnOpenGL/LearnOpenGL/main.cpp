@@ -13,7 +13,7 @@
 const int screen_width = 800;
 const int screen_height = 600;
 
-GLfloat vertices[] = {
+GLfloat vertices_cube [] = {
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
@@ -63,6 +63,16 @@ GLfloat vertices[] = {
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f
 };
 
+GLfloat vertices_panel [] = {
+	-0.5f, -0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f,
+	 0.5f, -0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 1.0f, 0.0f,
+	 0.5f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
+
+	 0.5f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
+	-0.5f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f,
+};
+
 glm::vec3 cube_pos_lit[] = {
 	glm::vec3(0.0f, 0.0f, 0.0f),
 	glm::vec3(-2.0f, -2.0f, 2.0f),
@@ -83,6 +93,13 @@ glm::vec3 light_pos_list[] = {
 
 	glm::vec3(0.0f, 5.0f, 0.0f),
 	glm::vec3(0.0f, 0.0f, 0.0f)
+};
+
+glm::vec3 grass_pos_list[] = {
+	glm::vec3(0.0f, 1.0f, 0.0f),
+	glm::vec3(3.0f, 1.0f, 1.0f),
+	glm::vec3(1.0f, 1.0f, 3.0f),
+	glm::vec3(2.0f, 1.0f, 2.0f),
 };
 
 unsigned int indices[] = {
@@ -164,18 +181,24 @@ int main()
 	glfwSetKeyCallback(window, key_callback);
 
 	// 声明一个顶点缓冲对象
-	GLuint VBO;
-	glGenBuffers(1, &VBO);
+	GLuint VBO_cub, VBO_panel;
+	glGenBuffers(1, &VBO_cub);
 	// 设置顶点缓冲对象缓冲区类型
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_cub);
 	// 向缓冲区中写入数据
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cube), vertices_cube, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &VBO_panel);
+	// 设置顶点缓冲对象缓冲区类型
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_panel);
+	// 向缓冲区中写入数据
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
 
 	// light
 	GLuint VAO_cube, VAO_plane;
 	glGenVertexArrays(1, &VAO_cube);
 	glBindVertexArray(VAO_cube);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO_cub);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
@@ -189,7 +212,7 @@ int main()
 
 	glGenVertexArrays(1, &VAO_plane);
 	glBindVertexArray(VAO_plane);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO_panel);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
@@ -203,9 +226,11 @@ int main()
 
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
 	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wall.jpg");
+	unsigned int grass_texture = loadTexture("../LearnOpenGL/res/grass.png");
 
 	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
+	Shader shader_gress = Shader("../LearnOpenGL/res/shader_blend.vs", "../LearnOpenGL/res/shader_blend.fs");
 
 	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
@@ -229,8 +254,9 @@ int main()
 		glm::mat4 projection = camera_main->getProjection();
 		// 模型矩阵
 		glm::mat4 transform = glm::mat4(1.0f);
-		transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, 0.0f));
-		transform = glm::scale(transform, glm::vec3(30.0f, 0.1f, 30.0f));
+		//transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, 0.0f));
+		transform = glm::scale(transform, glm::vec3(30.0f));
+		transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 		// 地面
 		glStencilMask(0x00);
@@ -242,7 +268,24 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, floor_texture);
 		shader_obj.setInt("testTexture", 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// 草地
+		for (int i =0; i < 4; i++)
+		{
+			glm::mat4 transform = glm::mat4(1.0f);
+			transform = glm::translate(transform, grass_pos_list[i]);
+			glStencilMask(0x00);
+			shader_gress.use();
+			shader_gress.setMatrix4f("transform", transform);
+			shader_gress.setMatrix4f("view", view);
+			shader_gress.setMatrix4f("projection", projection);
+			glBindVertexArray(VAO_plane);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, grass_texture);
+			shader_gress.setInt("diffuse_texture", 1);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 
 		// cubs
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -253,71 +296,19 @@ int main()
 		shader_obj.setMatrix4f("view", view);
 		shader_obj.setMatrix4f("projection", projection);
 		model.draw(shader_obj);
-		//glm::mat4 transform_cub = glm::mat4(1.0f);
-		//transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
-		//shader_obj.use();
-		//shader_obj.setMatrix4f("transform", transform_cub);
-		//shader_obj.setMatrix4f("view", view);
-		//shader_obj.setMatrix4f("projection", projection);
-		//glBindVertexArray(VAO_cube);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, cube_texture);
-		//shader_obj.setInt("testTexture", 1);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		//transform_cub = glm::mat4(1.0f);
-		//transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
-		//shader_obj.use();
-		//shader_obj.setMatrix4f("transform", transform_cub);
-		//shader_obj.setMatrix4f("view", view);
-		//shader_obj.setMatrix4f("projection", projection);
-		//glBindVertexArray(VAO_cube);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, cube_texture);
-		//shader_obj.setInt("testTexture", 1);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-
 
 		// cub outline
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 
 		transform_cub = glm::mat4(1.0f);
-		transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
+		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
 		shader_stencil.use();
 		shader_stencil.setMatrix4f("transform", transform_cub);
 		shader_stencil.setMatrix4f("view", view);
 		shader_stencil.setMatrix4f("projection", projection);
 		shader_stencil.setFloat("outline", 0.1f);
-
 		model.draw(shader_stencil);
-		//glDisable(GL_DEPTH_TEST);
-		//transform_cub = glm::mat4(1.0f);
-		//transform_cub = glm::translate(transform_cub, glm::vec3(-1.0f, 0.0f, 0.0f));
-		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
-		//shader_stencil.use();
-		//shader_stencil.setMatrix4f("transform", transform_cub);
-		//shader_stencil.setMatrix4f("view", view);
-		//shader_stencil.setMatrix4f("projection", projection);
-		//glBindVertexArray(VAO_cube);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, cube_texture);
-		//shader_stencil.setInt("testTexture", 1);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		//transform_cub = glm::mat4(1.0f);
-		//transform_cub = glm::translate(transform_cub, glm::vec3(1.0f, 0.0f, 0.0f));
-		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
-		//shader_stencil.use();
-		//shader_stencil.setMatrix4f("transform", transform_cub);
-		//shader_stencil.setMatrix4f("view", view);
-		//shader_stencil.setMatrix4f("projection", projection);
-		//glBindVertexArray(VAO_cube);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, cube_texture);
-		//shader_stencil.setInt("testTexture", 1);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-
 		glStencilMask(0xFF);
 		//glEnable(GL_DEPTH_TEST);
 
@@ -327,7 +318,8 @@ int main()
 
 	glDeleteVertexArrays(1, &VAO_cube);
 	glDeleteVertexArrays(1, &VAO_plane);
-	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &VBO_cub);
+	glDeleteBuffers(1, &VBO_panel);
 	//delete &shader_obj;
 	//delete &shader_light;
 
@@ -344,8 +336,8 @@ unsigned int loadTexture(std::string fileName)
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
