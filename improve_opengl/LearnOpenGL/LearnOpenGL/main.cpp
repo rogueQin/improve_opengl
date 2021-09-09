@@ -174,6 +174,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
+	glEnable(GL_BLEND);
+
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glfwSetCursorPosCallback(window, mouse_callback);

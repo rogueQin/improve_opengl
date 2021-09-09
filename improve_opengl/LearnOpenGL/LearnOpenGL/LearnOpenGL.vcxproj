@@ -70,8 +70,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\projects\improve_projects\improve_opengl\LearnOpenGL\LearnOpenGL\scripts;D:\projects\improve_projects\improve_opengl\LearnOpenGL\LearnOpenGL\includes;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\projects\improve_projects\improve_opengl\LearnOpenGL\LearnOpenGL\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)scripts;$(ProjectDir)includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -79,12 +79,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\projects\improve_projects\improve_opengl\LearnOpenGL\LearnOpenGL\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\projects\improve_projects\improve_opengl\LearnOpenGL\LearnOpenGL\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -157,6 +157,7 @@
   <ItemGroup>
     <Image Include="res\05_coordinate_systems.png" />
     <Image Include="res\awesomeface.png" />
+    <Image Include="res\blending_transparent_window.png" />
     <Image Include="res\container.jpg" />
     <Image Include="res\container2.png" />
     <Image Include="res\container2_specular.png" />
