@@ -53,6 +53,12 @@
     <None Include="res\shader_light.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_blend.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_blend.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
@@ -88,6 +94,12 @@
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="res\container2_specular.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\grass.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\blending_transparent_window.png">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>
