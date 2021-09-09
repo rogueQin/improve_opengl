@@ -102,6 +102,12 @@ glm::vec3 grass_pos_list[] = {
 	glm::vec3(2.0f, 1.0f, 2.0f),
 };
 
+glm::vec3 window_pos_list[] = {
+	glm::vec3(0.0f, 7.0f, 3.0f),
+	glm::vec3(-1.0f, 8.0f, 5.0f),
+	glm::vec3(-1.0f, 5.0f, 7.0f),
+};
+
 unsigned int indices[] = {
 	0,1,2,
 	2,3,0,
@@ -174,8 +180,6 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
-	glEnable(GL_BLEND);
-
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -229,6 +233,7 @@ int main()
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
 	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wall.jpg");
 	unsigned int grass_texture = loadTexture("../LearnOpenGL/res/grass.png");
+	unsigned int window_texture = loadTexture("../LearnOpenGL/res/blending_transparent_window.png");
 
 	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
@@ -272,6 +277,41 @@ int main()
 		shader_obj.setInt("testTexture", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		// cubs
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		glm::mat4 transform_cub = glm::mat4(1.0f);
+		shader_obj.use();
+		shader_obj.setMatrix4f("transform", transform_cub);
+		shader_obj.setMatrix4f("view", view);
+		shader_obj.setMatrix4f("projection", projection);
+		model.draw(shader_obj);
+
+		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // RGBA使用相同的混合模式
+		// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); // RGB使用一种混合模式，alpha使用一种混合模式
+		// glBlendEquation(GL_FUNC_ADD); // 修改混合模式混合算法的运算符
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		// 窗户
+		for (int i = 0; i < 3; i++)
+		{
+			glm::mat4 transform = glm::mat4(1.0f);
+			transform = glm::translate(transform, window_pos_list[i]);
+			transform = glm::scale(transform, glm::vec3(3.0f, 3.0f, 3.0f));
+			glStencilMask(0x00);
+			shader_gress.use();
+			shader_gress.setMatrix4f("transform", transform);
+			shader_gress.setMatrix4f("view", view);
+			shader_gress.setMatrix4f("projection", projection);
+			glBindVertexArray(VAO_plane);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, window_texture);
+			shader_gress.setInt("diffuse_texture", 1);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
 		// 草地
 		for (int i =0; i < 4; i++)
 		{
@@ -289,29 +329,17 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
-		// cubs
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
-		glm::mat4 transform_cub = glm::mat4(1.0f);
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform_cub);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
-		model.draw(shader_obj);
-
 		// cub outline
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-
-		transform_cub = glm::mat4(1.0f);
-		//transform_cub = glm::scale(transform_cub, glm::vec3(1.05f, 1.05f, 1.05f));
-		shader_stencil.use();
-		shader_stencil.setMatrix4f("transform", transform_cub);
-		shader_stencil.setMatrix4f("view", view);
-		shader_stencil.setMatrix4f("projection", projection);
-		shader_stencil.setFloat("outline", 0.1f);
-		model.draw(shader_stencil);
-		glStencilMask(0xFF);
+		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		//glStencilMask(0x00);
+		//transform_cub = glm::mat4(1.0f);
+		//shader_stencil.use();
+		//shader_stencil.setMatrix4f("transform", transform_cub);
+		//shader_stencil.setMatrix4f("view", view);
+		//shader_stencil.setMatrix4f("projection", projection);
+		//shader_stencil.setFloat("outline", 0.1f);
+		//model.draw(shader_stencil);
+		//glStencilMask(0xFF);
 		//glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲区

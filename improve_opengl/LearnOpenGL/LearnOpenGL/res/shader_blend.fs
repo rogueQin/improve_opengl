@@ -12,9 +12,9 @@ uniform sampler2D diffuse_texture;
 void main()
 {
 	vec4 texColor = texture(diffuse_texture, TexCoords);
-	if(texColor.a < 0.1f)
-	{
-		discard;
-	}
+	// if(texColor.a < 0.1f)
+	// {
+	// 	discard;
+	// }
 	color = texColor;
 }
