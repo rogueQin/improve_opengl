@@ -15,12 +15,12 @@ const int screen_height = 600;
 
 GLfloat vertices_cube [] = {
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
 
 		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
 
 		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
@@ -39,12 +39,12 @@ GLfloat vertices_cube [] = {
 		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
 
 		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
 
 		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
 		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
 
 		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
@@ -55,12 +55,12 @@ GLfloat vertices_cube [] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
 
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 
 		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
 		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f
 };
 
 GLfloat vertices_panel [] = {
@@ -277,7 +277,10 @@ int main()
 		shader_obj.setInt("testTexture", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		// cubs
+		// model
+		glEnable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
+
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 		glm::mat4 transform_cub = glm::mat4(1.0f);
@@ -286,6 +289,24 @@ int main()
 		shader_obj.setMatrix4f("view", view);
 		shader_obj.setMatrix4f("projection", projection);
 		model.draw(shader_obj);
+
+		// cube
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		transform = glm::mat4(1.0f);
+		transform = glm::scale(transform, glm::vec3(3.0f, 3.0f,3.0f));
+		transform = glm::translate(transform, glm::vec3(3.0f, 5.0f, 0.0f));
+		shader_obj.use();
+		shader_obj.setMatrix4f("transform", transform);
+		shader_obj.setMatrix4f("view", view);
+		shader_obj.setMatrix4f("projection", projection);
+		glBindVertexArray(VAO_cube);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cube_texture);
+		shader_obj.setInt("testTexture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDisable(GL_CULL_FACE);
+		
 
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // RGBA使用相同的混合模式
 		// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); // RGB使用一种混合模式，alpha使用一种混合模式
@@ -329,7 +350,7 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
-		// cub outline
+		//// model outline
 		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		//glStencilMask(0x00);
 		//transform_cub = glm::mat4(1.0f);
