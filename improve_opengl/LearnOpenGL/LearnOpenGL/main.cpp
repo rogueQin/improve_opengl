@@ -290,27 +290,8 @@ int main()
 		shader_obj.setMatrix4f("projection", projection);
 		model.draw(shader_obj);
 
-		// cube
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
-		transform = glm::mat4(1.0f);
-		transform = glm::scale(transform, glm::vec3(3.0f, 3.0f,3.0f));
-		transform = glm::translate(transform, glm::vec3(3.0f, 5.0f, 0.0f));
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
-		glBindVertexArray(VAO_cube);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, cube_texture);
-		shader_obj.setInt("testTexture", 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDisable(GL_CULL_FACE);
-		
 
-		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // RGBA使用相同的混合模式
-		// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); // RGB使用一种混合模式，alpha使用一种混合模式
-		// glBlendEquation(GL_FUNC_ADD); // 修改混合模式混合算法的运算符
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -350,18 +331,42 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 
-		//// model outline
-		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		//glStencilMask(0x00);
-		//transform_cub = glm::mat4(1.0f);
-		//shader_stencil.use();
-		//shader_stencil.setMatrix4f("transform", transform_cub);
-		//shader_stencil.setMatrix4f("view", view);
-		//shader_stencil.setMatrix4f("projection", projection);
-		//shader_stencil.setFloat("outline", 0.1f);
-		//model.draw(shader_stencil);
-		//glStencilMask(0xFF);
-		//glEnable(GL_DEPTH_TEST);
+		// cube
+		glEnable(GL_CULL_FACE);
+		glStencilOp(GL_REPLACE, GL_REPLACE, GL_KEEP);
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilMask(0xFF);
+		transform = glm::mat4(1.0f);
+		transform = glm::scale(transform, glm::vec3(3.0f, 3.0f, 3.0f));
+		transform = glm::translate(transform, glm::vec3(3.0f, 3.0f, 0.0f));
+		shader_obj.use();
+		shader_obj.setMatrix4f("transform", transform);
+		shader_obj.setMatrix4f("view", view);
+		shader_obj.setMatrix4f("projection", projection);
+		glBindVertexArray(VAO_cube);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cube_texture);
+		shader_obj.setInt("testTexture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		// cube outline
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0xFF);
+		transform = glm::mat4(1.0f);
+		transform = glm::scale(transform, glm::vec3(3.0f, 3.0f, 3.0f));
+		transform = glm::translate(transform, glm::vec3(3.0f, 3.0f, 0.0f));
+		shader_stencil.use();
+		shader_stencil.setMatrix4f("transform", transform);
+		shader_stencil.setMatrix4f("view", view);
+		shader_stencil.setMatrix4f("projection", projection);
+		shader_stencil.setFloat("outline", 0.1f);
+		glBindVertexArray(VAO_cube);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cube_texture);
+		shader_obj.setInt("testTexture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDisable(GL_CULL_FACE);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
