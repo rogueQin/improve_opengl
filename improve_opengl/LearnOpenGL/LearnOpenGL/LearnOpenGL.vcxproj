@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scripts\Camera.cpp" />
+    <ClCompile Include="scripts\Config.cpp" />
     <ClCompile Include="scripts\glad.c" />
     <ClCompile Include="scripts\Mesh.cpp" />
     <ClCompile Include="scripts\Model.cpp" />
