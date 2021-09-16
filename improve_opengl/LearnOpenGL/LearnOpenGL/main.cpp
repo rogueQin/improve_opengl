@@ -237,6 +237,7 @@ int main()
 	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 	Shader shader_gress = Shader("../LearnOpenGL/res/shader_blend.vs", "../LearnOpenGL/res/shader_blend.fs");
+	Shader shader_frame = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_frame.fs");
 
 	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
@@ -443,16 +444,18 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		transform = glm::mat4(1.0f);
-		transform = glm::scale(transform, glm::vec3(30.0f));
-		transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
+		transform = glm::scale(transform, glm::vec3(2.0f));
+		//transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		shader_frame.use();
+		shader_frame.setMatrix4f("transform", transform);
+		view = glm::mat4(1.0f);
+		projection = glm::mat4(1.0f);
+		shader_frame.setMatrix4f("view", view);
+		shader_frame.setMatrix4f("projection", projection);
 		glBindVertexArray(VAO_plane);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, FBOTexture_RGB);
-		shader_obj.setInt("testTexture", 0);
+		shader_frame.setInt("testTexture", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区

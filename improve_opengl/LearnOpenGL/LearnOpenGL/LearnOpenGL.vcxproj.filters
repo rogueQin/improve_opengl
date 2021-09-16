@@ -62,6 +62,9 @@
     <None Include="res\shader_blend.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_frame.fs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
