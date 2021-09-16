@@ -9,9 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.h"
 #include "Model.h"
+#include "Config.h"
 
-const int screen_width = 800;
-const int screen_height = 600;
 
 GLfloat vertices_cube [] = {
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
@@ -151,7 +150,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// 创建GLFW窗口
-	GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(Config::Screen_width, Config::Screen_height, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window!" << std::endl;
@@ -167,7 +166,7 @@ int main()
 		return -1;
 	}
 
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	camera_main = new Camera(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
@@ -238,8 +237,35 @@ int main()
 	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
 	Shader shader_gress = Shader("../LearnOpenGL/res/shader_blend.vs", "../LearnOpenGL/res/shader_blend.fs");
+	Shader shader_frame = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_frame.fs");
 
 	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+
+	GLuint FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	unsigned int FBOTexture_RGB;
+	glGenTextures(1, &FBOTexture_RGB);
+	glBindTexture(GL_TEXTURE_2D, FBOTexture_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FBOTexture_RGB, 0);
+
+	GLuint RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Config::Screen_width, Config::Screen_height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error::FrameBuffer::FrameBuffer is not complete!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -250,6 +276,9 @@ int main()
 		processInput(window);
 
 		camera_main->update();
+
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -277,6 +306,7 @@ int main()
 		shader_obj.setInt("testTexture", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+
 		// model
 		glEnable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
@@ -295,7 +325,7 @@ int main()
 		glStencilMask(0xFF);
 		transform = glm::mat4(1.0f);
 		transform = glm::scale(transform, glm::vec3(3.0f, 3.0f,3.0f));
-		transform = glm::translate(transform, glm::vec3(3.0f, 5.0f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(-3.0f, 3.0f, 0.0f));
 		shader_obj.use();
 		shader_obj.setMatrix4f("transform", transform);
 		shader_obj.setMatrix4f("view", view);
@@ -318,7 +348,7 @@ int main()
 		// 窗户
 		for (int i = 0; i < 3; i++)
 		{
-			glm::mat4 transform = glm::mat4(1.0f);
+			transform = glm::mat4(1.0f);
 			transform = glm::translate(transform, window_pos_list[i]);
 			transform = glm::scale(transform, glm::vec3(3.0f, 3.0f, 3.0f));
 			glStencilMask(0x00);
@@ -363,6 +393,71 @@ int main()
 		//glStencilMask(0xFF);
 		//glEnable(GL_DEPTH_TEST);
 
+		/**
+			清理完模版数据
+			第一次写入模版缓冲
+			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) : 设置模版缓冲修改规则（模版缓冲写入规则，模版测试失败、模版深度测试失败、模版测试通过）
+			glStencilFunc(GL_ALWAYS, 1, 0xFF): 设置模版缓冲测试通过规则 func测试方式:模版值与ref参考值对比方式; ref参考值:与模版对比的参考值; mask掩码:模版测试之前分别需要与模版值和参考值做与运算
+			glStencilMask(0xFF): 设置模版缓冲写入掩码（与最终模版写入码做 与 运算）
+			model.draw():渲染模型(与模版缓冲做测试，测试通过保留色值，并根据stencilop规则刷新模版数据)
+		*/
+		glClear(GL_STENCIL_BUFFER_BIT);
+		transform = glm::mat4(1.0f);
+		transform = glm::translate(transform, glm::vec3(10.0f, 0.0f, 0.0f));
+		glStencilMask(0xFF);
+
+		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+		glStencilFunc(GL_NEVER, 2, 0xFF);
+		shader_stencil.use();
+		shader_stencil.setMatrix4f("transform", transform);
+		shader_stencil.setMatrix4f("view", view);
+		shader_stencil.setMatrix4f("projection", projection);
+		shader_stencil.setFloat("outline", 0.1f);
+		model.draw(shader_stencil);
+
+		glStencilOp(GL_ZERO, GL_ZERO, GL_ZERO);
+		glStencilFunc(GL_NEVER, 1, 0xFF);
+		shader_obj.use();
+		shader_obj.setMatrix4f("transform", transform);
+		shader_obj.setMatrix4f("view", view);
+		shader_obj.setMatrix4f("projection", projection);
+		//shader_obj.setFloat("outline", 0.1f);
+		model.draw(shader_obj);
+
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		glStencilFunc(GL_EQUAL, 2, 0xFF);
+		shader_stencil.use();
+		shader_stencil.setMatrix4f("transform", transform);
+		shader_stencil.setMatrix4f("view", view);
+		shader_stencil.setMatrix4f("projection", projection);
+		shader_stencil.setFloat("outline", 0.1f);
+		model.draw(shader_stencil);
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		//glEnable(GL_DEPTH_TEST);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		transform = glm::mat4(1.0f);
+		transform = glm::scale(transform, glm::vec3(2.0f));
+		//transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		shader_frame.use();
+		shader_frame.setMatrix4f("transform", transform);
+		view = glm::mat4(1.0f);
+		projection = glm::mat4(1.0f);
+		shader_frame.setMatrix4f("view", view);
+		shader_frame.setMatrix4f("projection", projection);
+		glBindVertexArray(VAO_plane);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, FBOTexture_RGB);
+		shader_frame.setInt("testTexture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
@@ -371,6 +466,7 @@ int main()
 	glDeleteVertexArrays(1, &VAO_plane);
 	glDeleteBuffers(1, &VBO_cub);
 	glDeleteBuffers(1, &VBO_panel);
+	glDeleteFramebuffers(1, &FBO);
 	//delete &shader_obj;
 	//delete &shader_light;
 

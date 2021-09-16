@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scripts\Camera.cpp" />
+    <ClCompile Include="scripts\Config.cpp" />
     <ClCompile Include="scripts\glad.c" />
     <ClCompile Include="scripts\Mesh.cpp" />
     <ClCompile Include="scripts\Model.cpp" />
@@ -143,6 +144,7 @@
     <None Include="res\shader.vs" />
     <None Include="res\shader_blend.fs" />
     <None Include="res\shader_blend.vs" />
+    <None Include="res\shader_frame.fs" />
     <None Include="res\shader_light.fs" />
     <None Include="res\shader_light.vs" />
   </ItemGroup>
