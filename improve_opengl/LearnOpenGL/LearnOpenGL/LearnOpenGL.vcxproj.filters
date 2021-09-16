@@ -36,6 +36,9 @@
     <ClCompile Include="scripts\Model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="scripts\Config.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shader.fs">
@@ -57,6 +60,9 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="res\shader_blend.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_frame.fs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
