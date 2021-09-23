@@ -224,8 +224,8 @@ int main()
 
 	stbi_set_flip_vertically_on_load(true);
 
-	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	//glEnable(GL_STENCIL_TEST);
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	
 	glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
@@ -331,6 +331,8 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
+		glEnable(GL_CULL_FACE);
+
 		// 观察矩阵
 		glm::mat4 view = camera_main->getView();
 		// 投影矩阵
@@ -342,21 +344,24 @@ int main()
 		transform = glm::scale(transform, glm::vec3(30.0f));
 		transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-		// 地面
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
-		glBindVertexArray(VAO_plane);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, floor_texture);
-		shader_obj.setInt("testTexture", 0);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//// 地面
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform);
+		//shader_obj.setMatrix4f("view", view);
+		//shader_obj.setMatrix4f("projection", projection);
+		//glBindVertexArray(VAO_plane);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, floor_texture);
+		//shader_obj.setInt("testTexture", 0);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// model
-		glEnable(GL_CULL_FACE);
 		glm::mat4 transform_cub = glm::mat4(1.0f);
 		shader_obj.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		shader_obj.setInt("skybox", 0);
+		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
 		shader_obj.setMatrix4f("transform", transform_cub);
 		shader_obj.setMatrix4f("view", view);
 		shader_obj.setMatrix4f("projection", projection);
@@ -365,15 +370,21 @@ int main()
 		// cube
 		transform = glm::mat4(1.0f);
 		transform = glm::scale(transform, glm::vec3(3.0f, 3.0f,3.0f));
-		transform = glm::translate(transform, glm::vec3(-3.0f, 3.0f, 0.0f));
+		//transform = glm::translate(transform, glm::vec3(-3.0f, 3.0f, 0.0f));
 		shader_obj.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		shader_obj.setInt("skybox", 0);
+		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, cube_texture);
+		//shader_obj.setInt("testTexture", 0);
+
 		shader_obj.setMatrix4f("transform", transform);
 		shader_obj.setMatrix4f("view", view);
 		shader_obj.setMatrix4f("projection", projection);
 		glBindVertexArray(VAO_cube);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, cube_texture);
-		shader_obj.setInt("testTexture", 0);
+
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDisable(GL_CULL_FACE);
 
