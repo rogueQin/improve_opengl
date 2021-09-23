@@ -38,9 +38,10 @@ float far = 100.0f;
 
 void main()
 {	
-
+	float ratio = 1.0f / 1.52f;
 	vec3 I = normalize(FragPos - viewPos);
-	vec3 R = reflect(I, normalize(Normal));
+	// vec3 R = reflect(I, normalize(Normal));
+	vec3 R = refract(I, normalize(Normal), ratio);
 	// vec3 result = vec3(texture(material.texture_diffuse1, TexCoords));
 	vec3 result = vec3(texture(skybox, R));
 	
