@@ -147,6 +147,8 @@
     <None Include="res\shader_frame.fs" />
     <None Include="res\shader_light.fs" />
     <None Include="res\shader_light.vs" />
+    <None Include="res\shader_skybox.fs" />
+    <None Include="res\shader_skybox.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Camera.h" />
@@ -164,6 +166,12 @@
     <Image Include="res\container2.png" />
     <Image Include="res\container2_specular.png" />
     <Image Include="res\grass.png" />
+    <Image Include="res\skybox\back.jpg" />
+    <Image Include="res\skybox\bottom.jpg" />
+    <Image Include="res\skybox\front.jpg" />
+    <Image Include="res\skybox\left.jpg" />
+    <Image Include="res\skybox\right.jpg" />
+    <Image Include="res\skybox\top.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

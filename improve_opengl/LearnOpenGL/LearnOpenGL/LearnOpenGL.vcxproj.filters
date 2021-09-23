@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="资源文件\skybox">
+      <UniqueIdentifier>{b8396487-868d-4d2a-9a3c-73f434f0088d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -65,6 +68,12 @@
     <None Include="res\shader_frame.fs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_skybox.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_skybox.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
@@ -107,6 +116,24 @@
     </Image>
     <Image Include="res\blending_transparent_window.png">
       <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\skybox\back.jpg">
+      <Filter>资源文件\skybox</Filter>
+    </Image>
+    <Image Include="res\skybox\bottom.jpg">
+      <Filter>资源文件\skybox</Filter>
+    </Image>
+    <Image Include="res\skybox\front.jpg">
+      <Filter>资源文件\skybox</Filter>
+    </Image>
+    <Image Include="res\skybox\left.jpg">
+      <Filter>资源文件\skybox</Filter>
+    </Image>
+    <Image Include="res\skybox\right.jpg">
+      <Filter>资源文件\skybox</Filter>
+    </Image>
+    <Image Include="res\skybox\top.jpg">
+      <Filter>资源文件\skybox</Filter>
     </Image>
   </ItemGroup>
 </Project>
