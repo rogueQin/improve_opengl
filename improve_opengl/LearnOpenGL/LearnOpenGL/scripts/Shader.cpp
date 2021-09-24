@@ -121,3 +121,9 @@ void Shader::setVec3f(const std::string name, glm::vec3 vec)const
 	GLuint uniformLocation = glGetUniformLocation(ID, name.c_str());
 	glUniform3f(uniformLocation, vec.x, vec.y, vec.z);
 }
+
+void Shader::setBlock(const std::string name, int value)const 
+{
+	GLuint uniformLocation = glGetUniformBlockIndex(ID, name.c_str());
+	glUniformBlockBinding(ID, uniformLocation, value);
+}
