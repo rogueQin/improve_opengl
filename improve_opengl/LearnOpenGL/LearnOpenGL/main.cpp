@@ -317,6 +317,25 @@ int main()
 
 	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
+	camera_main->update();
+	glm::mat4 view = camera_main->getView();
+	glm::mat4 projection = camera_main->getProjection();
+
+	shader_obj.setBlock("Camera", 0);
+
+	GLuint UBO_camera;
+	glGenBuffers(1, &UBO_camera);
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO_camera);
+	glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO_camera, 0, 2*sizeof(glm::mat4));
+
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+
+	
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
@@ -334,15 +353,26 @@ int main()
 		glEnable(GL_CULL_FACE);
 
 		// 观察矩阵
-		glm::mat4 view = camera_main->getView();
+		view = camera_main->getView();
 		// 投影矩阵
-		glm::mat4 projection = camera_main->getProjection();
+		projection = camera_main->getProjection();
+
+
+		glBindBuffer(GL_UNIFORM_BUFFER, UBO_camera);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO_camera, 0, 2 * sizeof(glm::mat4));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		shader_obj.setBlock("Camera", 0);
+
 		// 模型矩阵
 		glm::mat4 transform = glm::mat4(1.0f);
-
 		//transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, 0.0f));
 		transform = glm::scale(transform, glm::vec3(30.0f));
 		transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		//GLuint light_index = glGetUniformBlockIndex(shader_stencil.ID, "light");
+		//glUniformBlockBinding(shader_stencil.ID, light_index, );
 
 		//// 地面
 		//shader_obj.use();
@@ -363,8 +393,6 @@ int main()
 		shader_obj.setInt("skybox", 0);
 		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
 		shader_obj.setMatrix4f("transform", transform_cub);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
 		model.draw(shader_obj);
 
 		// cube
@@ -376,13 +404,7 @@ int main()
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		shader_obj.setInt("skybox", 0);
 		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, cube_texture);
-		//shader_obj.setInt("testTexture", 0);
-
 		shader_obj.setMatrix4f("transform", transform);
-		shader_obj.setMatrix4f("view", view);
-		shader_obj.setMatrix4f("projection", projection);
 		glBindVertexArray(VAO_cube);
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
