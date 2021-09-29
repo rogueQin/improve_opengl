@@ -13,19 +13,14 @@ layout (std140) uniform Camera
 
 uniform mat4 transform;
 
-out vec3 Normal;
-
-out VS_OUT
-{
-	vec2 TexCoords;
-	vec3 FragPos;
+out VS_OUT{
+	vec2 texCoords;
 }vs_out;
 
 void main()
-{
-	vs_out.TexCoords = aTexCoords;
-	vs_out.FragPos = vec3(transform * vec4(aPosition, 1.0));
-	Normal = mat3(transpose(inverse(transform))) * aNormal;
+{ 
+	vs_out.texCoords = aTexCoords;
+	vec3 FragPos = vec3(transform * vec4(aPosition, 1.0));
 
-	gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
+	gl_Position = projection * view * vec4(FragPos, 1.0);
 }

@@ -141,6 +141,7 @@
   <ItemGroup>
     <None Include="res\04_transformation.node" />
     <None Include="res\shader.fs" />
+    <None Include="res\shader.gs" />
     <None Include="res\shader.vs" />
     <None Include="res\shader_blend.fs" />
     <None Include="res\shader_blend.vs" />

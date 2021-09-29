@@ -83,6 +83,9 @@
     <None Include="res\shader_gs_test.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader.gs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">

@@ -63,13 +63,10 @@ GLfloat vertices_cube [] = {
 };
 
 GLfloat vertices_panel [] = {
-	-0.5f, -0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f,
-	 0.5f, -0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 1.0f, 0.0f,
-	 0.5f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
-
-	 0.5f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
-	-0.5f,  0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 0.0f, 1.0f,
-	-0.5f, -0.5f, 0.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f,
+	-0.5f,  0.5f, 1.0f, 0.0f, 1.0f,
+	 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+	 0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+	-0.5f, -0.5f, 1.0f, 0.0f, 0.0f
 };
 
 GLfloat vertices_skybox[] = {
@@ -230,11 +227,11 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetKeyCallback(window, key_callback);
+	//glfwSetCursorPosCallback(window, mouse_callback);
+	//glfwSetScrollCallback(window, scroll_callback);
+	//glfwSetKeyCallback(window, key_callback);
 
 	// 声明一个顶点缓冲对象
 	GLuint VBO_cub, VBO_panel, VBO_skybox;
@@ -284,14 +281,11 @@ int main()
 	glBindVertexArray(VAO_plane);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_panel);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
 
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
@@ -310,7 +304,7 @@ int main()
 	unsigned int cubeMapTexture = loadCubeMap(faces);
 
 	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
-	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
+	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs", "../LearnOpenGL/res/shader.gs");
 	Shader shader_gress = Shader("../LearnOpenGL/res/shader_blend.vs", "../LearnOpenGL/res/shader_blend.fs");
 	Shader shader_frame = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_frame.fs");
 	Shader shader_skybox = Shader("../LearnOpenGL/res/shader_skybox.vs", "../LearnOpenGL/res/shader_skybox.fs");
@@ -350,7 +344,7 @@ int main()
 
 		shader_geometry.use();
 		glBindVertexArray(VAO_plane);
-		glDrawArrays(GL_POINTS, 0, 6);
+		glDrawArrays(GL_POINTS, 0, 4);
 
 		//glEnable(GL_CULL_FACE);
 
@@ -387,14 +381,15 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// model
-		//glm::mat4 transform_cub = glm::mat4(1.0f);
-		//shader_obj.use();
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-		//shader_obj.setInt("skybox", 0);
-		//shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
-		//shader_obj.setMatrix4f("transform", transform_cub);
-		//model.draw(shader_obj);
+		glm::mat4 transform_cub = glm::mat4(1.0f);
+		shader_obj.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		shader_obj.setFloat("time", (float)glfwGetTime());
+		shader_obj.setInt("skybox", 0);
+		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
+		shader_obj.setMatrix4f("transform", transform_cub);
+		model.draw(shader_obj);
 
 		// cube
 		//transform = glm::mat4(1.0f);
