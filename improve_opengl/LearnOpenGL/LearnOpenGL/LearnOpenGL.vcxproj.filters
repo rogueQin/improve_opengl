@@ -74,6 +74,27 @@
     <None Include="res\shader_skybox.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_gs_test.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_gs_test.gs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_gs_test.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader.gs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_normal.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_normal.gs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_normal.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">

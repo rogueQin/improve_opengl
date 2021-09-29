@@ -22,30 +22,14 @@ struct Material{
 	float shininess; // ·´¹â¶È
 };
 
-in vec3 Normal;
+in vec2 TexCoords;
 
-in VS_OUT
-{
-	vec2 TexCoords;
-	vec3 FragPos;
-}fs_in;
 
-uniform vec3 viewPos;
 uniform Material material;
-uniform sampler2D testTexture;
-uniform samplerCube skybox;
-
-float near = 0.1f;
-float far = 100.0f;
 
 void main()
 {	
-	float ratio = 1.0f / 1.52f;
-	vec3 I = normalize(fs_in.FragPos - viewPos);
-	// vec3 R = reflect(I, normalize(Normal));
-	vec3 R = refract(I, normalize(Normal), ratio);
-	// vec3 result = vec3(texture(material.texture_diffuse1, fs_in.TexCoords));
-	vec3 result = vec3(texture(skybox, R));
+	vec3 result = vec3(texture(material.texture_diffuse1, TexCoords));
 	
 	color = vec4(result, 1.0f);
 }
