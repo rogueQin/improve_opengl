@@ -305,6 +305,8 @@ int main()
 
 	Shader shader_stencil = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_light.fs");
 	Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs", "../LearnOpenGL/res/shader.gs");
+	//Shader shader_obj = Shader("../LearnOpenGL/res/shader.vs", "../LearnOpenGL/res/shader.fs");
+	Shader shader_normal = Shader("../LearnOpenGL/res/shader_normal.vs", "../LearnOpenGL/res/shader_normal.fs", "../LearnOpenGL/res/shader_normal.gs");
 	Shader shader_gress = Shader("../LearnOpenGL/res/shader_blend.vs", "../LearnOpenGL/res/shader_blend.fs");
 	Shader shader_frame = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_frame.fs");
 	Shader shader_skybox = Shader("../LearnOpenGL/res/shader_skybox.vs", "../LearnOpenGL/res/shader_skybox.fs");
@@ -317,6 +319,7 @@ int main()
 	glm::mat4 projection = camera_main->getProjection();
 
 	shader_obj.setBlock("Camera", 0);
+	shader_normal.setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -386,10 +389,17 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 		shader_obj.setFloat("time", (float)glfwGetTime());
-		shader_obj.setInt("skybox", 0);
 		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
 		shader_obj.setMatrix4f("transform", transform_cub);
 		model.draw(shader_obj);
+
+		shader_normal.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		shader_normal.setVec3f("viewPos", camera_main->getCameraPosition());
+		shader_normal.setMatrix4f("transform", transform_cub);
+		model.draw(shader_normal);
+
 
 		// cube
 		//transform = glm::mat4(1.0f);
