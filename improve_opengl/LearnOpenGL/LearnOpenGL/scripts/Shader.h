@@ -19,6 +19,7 @@ public:
 	unsigned int ID;
 	
 	Shader(const GLchar* vertexPath, const GLchar* fragementPath);
+	Shader(const GLchar* vertexPath, const GLchar* fragementPath, const GLchar* geometryPath);
 	~Shader();
 
 	void use();

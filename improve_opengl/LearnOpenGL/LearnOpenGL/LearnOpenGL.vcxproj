@@ -145,6 +145,9 @@
     <None Include="res\shader_blend.fs" />
     <None Include="res\shader_blend.vs" />
     <None Include="res\shader_frame.fs" />
+    <None Include="res\shader_gs_test.fs" />
+    <None Include="res\shader_gs_test.gs" />
+    <None Include="res\shader_gs_test.vs" />
     <None Include="res\shader_light.fs" />
     <None Include="res\shader_light.vs" />
     <None Include="res\shader_skybox.fs" />
