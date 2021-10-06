@@ -347,7 +347,7 @@ int main()
 
 		shader_geometry.use();
 		glBindVertexArray(VAO_plane);
-		glDrawArrays(GL_POINTS, 0, 4);
+		glDrawArrays(GL_LINE_STRIP, 0, 4);
 
 		//glEnable(GL_CULL_FACE);
 
