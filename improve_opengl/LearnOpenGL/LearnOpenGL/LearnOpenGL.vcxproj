@@ -153,6 +153,10 @@
     <None Include="res\shader_instance.vs" />
     <None Include="res\shader_light.fs" />
     <None Include="res\shader_light.vs" />
+    <None Include="res\shader_model.fs" />
+    <None Include="res\shader_model.vs" />
+    <None Include="res\shader_model_instance.fs" />
+    <None Include="res\shader_model_instance.vs" />
     <None Include="res\shader_normal.fs" />
     <None Include="res\shader_normal.gs" />
     <None Include="res\shader_normal.vs" />
