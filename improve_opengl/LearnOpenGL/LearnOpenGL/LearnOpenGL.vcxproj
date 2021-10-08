@@ -149,6 +149,8 @@
     <None Include="res\shader_gs_test.fs" />
     <None Include="res\shader_gs_test.gs" />
     <None Include="res\shader_gs_test.vs" />
+    <None Include="res\shader_instance.fs" />
+    <None Include="res\shader_instance.vs" />
     <None Include="res\shader_light.fs" />
     <None Include="res\shader_light.vs" />
     <None Include="res\shader_normal.fs" />

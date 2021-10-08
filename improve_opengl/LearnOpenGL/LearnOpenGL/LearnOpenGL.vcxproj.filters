@@ -95,6 +95,12 @@
     <None Include="res\shader_normal.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_instance.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_instance.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">

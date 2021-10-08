@@ -63,10 +63,13 @@ GLfloat vertices_cube [] = {
 };
 
 GLfloat vertices_panel [] = {
-	-0.5f,  0.5f, 1.0f, 0.0f, 1.0f,
-	 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-	 0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
-	-0.5f, -0.5f, 1.0f, 0.0f, 0.0f
+	-0.05f,  0.05f, 1.0f, 0.0f, 1.0f,
+	 0.05f,  0.05f, 0.0f, 1.0f, 1.0f,
+	 0.05f, -0.05f, 1.0f, 1.0f, 0.0f,
+
+	 0.05f, -0.05f, 1.0f, 1.0f, 0.0f,
+	-0.05f, -0.05f, 1.0f, 0.0f, 0.0f,
+	-0.05f,  0.05f, 1.0f, 0.0f, 1.0f
 };
 
 GLfloat vertices_skybox[] = {
@@ -233,6 +236,23 @@ int main()
 	//glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
+	glm::vec2 instanceData[100];
+	float offset = 0.1f;
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			instanceData[i * 10 + j] = glm::vec2((i - 5) / 5.0f + offset, (j - 5) / 5.0f + offset);
+		}
+	}
+
+	GLuint instance_VBO;
+	glGenBuffers(1, &instance_VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &instanceData[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
 	// 声明一个顶点缓冲对象
 	GLuint VBO_cub, VBO_panel, VBO_skybox;
 	glGenBuffers(1, &VBO_cub);
@@ -281,11 +301,18 @@ int main()
 	glBindVertexArray(VAO_plane);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_panel);
 
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glVertexAttribDivisor(2, 1);
 	glBindVertexArray(0);
 
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
@@ -311,8 +338,9 @@ int main()
 	Shader shader_frame = Shader("../LearnOpenGL/res/shader_light.vs", "../LearnOpenGL/res/shader_frame.fs");
 	Shader shader_skybox = Shader("../LearnOpenGL/res/shader_skybox.vs", "../LearnOpenGL/res/shader_skybox.fs");
 	Shader shader_geometry = Shader("../LearnOpenGL/res/shader_gs_test.vs", "../LearnOpenGL/res/shader_gs_test.fs", "../LearnOpenGL/res/shader_gs_test.gs");
+	Shader shader_instance = Shader("../LearnOpenGL/res/shader_instance.vs", "../LearnOpenGL/res/shader_instance.fs");
 
-	Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	//Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -331,6 +359,8 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
@@ -345,12 +375,14 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
-		shader_geometry.use();
+		shader_instance.use();
 		glBindVertexArray(VAO_plane);
-		glDrawArrays(GL_LINE_STRIP, 0, 4);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+		glBindVertexArray(0);
+		// glDrawArrays(GL_TRIANGLES, 0, 7);
 
 		//glEnable(GL_CULL_FACE);
-
+		 
 		// 观察矩阵
 		//view = camera_main->getView();
 		// 投影矩阵
@@ -384,22 +416,21 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// model
-		glm::mat4 transform_cub = glm::mat4(1.0f);
-		shader_obj.use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-		shader_obj.setFloat("time", (float)glfwGetTime());
-		shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
-		shader_obj.setMatrix4f("transform", transform_cub);
-		model.draw(shader_obj);
+		//glm::mat4 transform_cub = glm::mat4(1.0f);
+		//shader_obj.use();
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		//shader_obj.setFloat("time", (float)glfwGetTime());
+		//shader_obj.setVec3f("viewPos", camera_main->getCameraPosition());
+		//shader_obj.setMatrix4f("transform", transform_cub);
+		//model.draw(shader_obj);
 
-		shader_normal.use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
-		shader_normal.setVec3f("viewPos", camera_main->getCameraPosition());
-		shader_normal.setMatrix4f("transform", transform_cub);
-		model.draw(shader_normal);
-
+		//shader_normal.use();
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
+		//shader_normal.setVec3f("viewPos", camera_main->getCameraPosition());
+		//shader_normal.setMatrix4f("transform", transform_cub);
+		//model.draw(shader_normal);
 
 		// cube
 		//transform = glm::mat4(1.0f);
