@@ -22,6 +22,9 @@ public:
 	Model(const char * path, bool gamma = false);
 	~Model();
 
+	void setInstanceArray(GLuint buffer);
+
+	void drawInstance(Shader &shader, int count);
 	void draw(Shader &shader);
 
 private:

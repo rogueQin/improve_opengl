@@ -150,11 +150,50 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial * material, aiTextur
 	return textures;
 }
 
+void Model::drawInstance(Shader &shader, int count)
+{
+	for (unsigned int i = 0; i < meshes.size(); i++) 
+	{
+		meshes[i].DrawInstance(shader, count);
+	}
+}
+
 void Model::draw(Shader &shader)
 {
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
 		meshes[i].Draw(shader);
+	}
+}
+
+void Model::setInstanceArray(GLuint buffer)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	for (unsigned int i = 0; i < meshes.size(); i++)
+	{
+		GLuint VAO = meshes[i].VAO;
+		glBindVertexArray(VAO);
+
+		GLsizei vec4Size = sizeof(glm::vec4);
+
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*vec4Size, (void*)0);
+
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(vec4Size));
+
+		glEnableVertexAttribArray(5);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+
+		glEnableVertexAttribArray(6);
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+
+		glVertexAttribDivisor(3, 1);
+		glVertexAttribDivisor(4, 1);
+		glVertexAttribDivisor(5, 1);
+		glVertexAttribDivisor(6, 1);
+
+		glBindVertexArray(0);
 	}
 }
 
