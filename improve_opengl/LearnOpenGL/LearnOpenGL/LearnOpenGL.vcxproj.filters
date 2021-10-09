@@ -16,6 +16,15 @@
     <Filter Include="资源文件\skybox">
       <UniqueIdentifier>{b8396487-868d-4d2a-9a3c-73f434f0088d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\planet">
+      <UniqueIdentifier>{593538a7-00fc-442e-9d07-4362d8b98460}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件\rock">
+      <UniqueIdentifier>{fc01f263-2195-4527-bb21-4cf10e3c2e37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件\nanosuit">
+      <UniqueIdentifier>{008de016-ed15-4ca3-8e03-738556270453}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -93,6 +102,24 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="res\shader_normal.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_instance.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_instance.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_model.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_model.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_model_instance.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_model_instance.vs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
