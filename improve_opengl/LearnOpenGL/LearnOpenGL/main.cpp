@@ -63,13 +63,13 @@ GLfloat vertices_cube [] = {
 };
 
 GLfloat vertices_panel [] = {
-	-0.05f,  0.05f, 1.0f, 0.0f, 1.0f,
-	 0.05f,  0.05f, 0.0f, 1.0f, 1.0f,
-	 0.05f, -0.05f, 1.0f, 1.0f, 0.0f,
-
-	 0.05f, -0.05f, 1.0f, 1.0f, 0.0f,
-	-0.05f, -0.05f, 1.0f, 0.0f, 0.0f,
-	-0.05f,  0.05f, 1.0f, 0.0f, 1.0f
+	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+	 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		
+	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f
 };
 
 GLfloat vertices_skybox[] = {
@@ -341,17 +341,17 @@ int main()
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_panel);
 
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(2);
+		//glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
+		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glVertexAttribDivisor(2, 1);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glVertexAttribDivisor(2, 1);
 	glBindVertexArray(0);
 
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
@@ -380,7 +380,7 @@ int main()
 	Shader shader_geometry = Shader("../LearnOpenGL/res/shader_gs_test.vs", "../LearnOpenGL/res/shader_gs_test.fs", "../LearnOpenGL/res/shader_gs_test.gs");
 	Shader shader_instance = Shader("../LearnOpenGL/res/shader_instance.vs", "../LearnOpenGL/res/shader_instance.fs");
 	Shader shader_cube = Shader("../LearnOpenGL/res/shader_cube.vs", "../LearnOpenGL/res/shader_cube.fs");
-
+	Shader shader_screen = Shader("../LearnOpenGL/res/shader_screen.vs", "../LearnOpenGL/res/shader_screen.fs");
 
 	//Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
@@ -402,6 +402,33 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
+	GLuint fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	GLuint tex_buffer;
+	glGenTextures(1, &tex_buffer);
+	glBindTexture(GL_TEXTURE_2D, tex_buffer);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_buffer, 0);
+
+	GLuint rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Config::Screen_width, Config::Screen_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error::FrameBuffer:Frame buffer is not complete!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
@@ -413,6 +440,7 @@ int main()
 		//camera_main->update();
 
 		// 处理渲染指令
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
@@ -436,6 +464,19 @@ int main()
 		shader_cube.setMatrix4f("transform", transform);
 		glBindVertexArray(VAO_cube);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		transform = glm::mat4(1.0f);
+		shader_screen.use();
+		glBindVertexArray(VAO_plane);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex_buffer);
+		shader_screen.setInt("screen_texture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
