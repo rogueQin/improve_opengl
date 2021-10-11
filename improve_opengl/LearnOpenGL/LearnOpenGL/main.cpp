@@ -198,6 +198,7 @@ int main()
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// 创建GLFW窗口
@@ -220,7 +221,7 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 50.0f, 50.0f), glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);
 
@@ -228,6 +229,7 @@ int main()
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -377,6 +379,8 @@ int main()
 	Shader shader_skybox = Shader("../LearnOpenGL/res/shader_skybox.vs", "../LearnOpenGL/res/shader_skybox.fs");
 	Shader shader_geometry = Shader("../LearnOpenGL/res/shader_gs_test.vs", "../LearnOpenGL/res/shader_gs_test.fs", "../LearnOpenGL/res/shader_gs_test.gs");
 	Shader shader_instance = Shader("../LearnOpenGL/res/shader_instance.vs", "../LearnOpenGL/res/shader_instance.fs");
+	Shader shader_cube = Shader("../LearnOpenGL/res/shader_cube.vs", "../LearnOpenGL/res/shader_cube.fs");
+
 
 	//Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
@@ -385,6 +389,7 @@ int main()
 	glm::mat4 projection = camera_main->getProjection();
 
 	shader_obj.setBlock("Camera", 0);
+	shader_cube.setBlock("Camera", 0);
 	// shader_normal.setBlock("Camera", 0);
 
 	GLuint UBO_camera;
@@ -412,9 +417,9 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
 		glm::mat4 transform = glm::mat4(1.0);
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform);
-		model_planet.draw(shader_obj);
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform);
+		//model_planet.draw(shader_obj);
 
 		//for (int i = 0; i < amount; i ++)
 		//{
@@ -422,8 +427,15 @@ int main()
 		//	shader_obj_ins.setMatrix4f("transform", model_matrices[i]);
 		//	model_rock.draw(shader_obj_ins);
 		//}
-		shader_obj_ins.use();
-		model_rock.drawInstance(shader_obj_ins, amount);
+		//shader_obj_ins.use();
+		//model_rock.drawInstance(shader_obj_ins, amount);
+
+		transform = glm::mat4(1.0f);
+		transform = glm::rotate(transform, 30.0f, glm::vec3(10.0f, 10.0f, 10.0f));
+		shader_cube.use();
+		shader_cube.setMatrix4f("transform", transform);
+		glBindVertexArray(VAO_cube);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
