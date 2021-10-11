@@ -145,6 +145,8 @@
     <None Include="res\shader.vs" />
     <None Include="res\shader_blend.fs" />
     <None Include="res\shader_blend.vs" />
+    <None Include="res\shader_cube.fs" />
+    <None Include="res\shader_cube.vs" />
     <None Include="res\shader_frame.fs" />
     <None Include="res\shader_gs_test.fs" />
     <None Include="res\shader_gs_test.gs" />
@@ -160,6 +162,8 @@
     <None Include="res\shader_normal.fs" />
     <None Include="res\shader_normal.gs" />
     <None Include="res\shader_normal.vs" />
+    <None Include="res\shader_screen.fs" />
+    <None Include="res\shader_screen.vs" />
     <None Include="res\shader_skybox.fs" />
     <None Include="res\shader_skybox.vs" />
   </ItemGroup>

@@ -63,13 +63,13 @@ GLfloat vertices_cube [] = {
 };
 
 GLfloat vertices_panel [] = {
-	-0.05f,  0.05f, 1.0f, 0.0f, 1.0f,
-	 0.05f,  0.05f, 0.0f, 1.0f, 1.0f,
-	 0.05f, -0.05f, 1.0f, 1.0f, 0.0f,
-
-	 0.05f, -0.05f, 1.0f, 1.0f, 0.0f,
-	-0.05f, -0.05f, 1.0f, 0.0f, 0.0f,
-	-0.05f,  0.05f, 1.0f, 0.0f, 1.0f
+	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+	 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		
+	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f
 };
 
 GLfloat vertices_skybox[] = {
@@ -198,6 +198,7 @@ int main()
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// 创建GLFW窗口
@@ -220,7 +221,7 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 50.0f, 50.0f), glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);
 
@@ -228,6 +229,7 @@ int main()
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -339,17 +341,17 @@ int main()
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_panel);
 
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+		//glEnableVertexAttribArray(2);
+		//glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
+		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glVertexAttribDivisor(2, 1);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glVertexAttribDivisor(2, 1);
 	glBindVertexArray(0);
 
 	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
@@ -377,6 +379,8 @@ int main()
 	Shader shader_skybox = Shader("../LearnOpenGL/res/shader_skybox.vs", "../LearnOpenGL/res/shader_skybox.fs");
 	Shader shader_geometry = Shader("../LearnOpenGL/res/shader_gs_test.vs", "../LearnOpenGL/res/shader_gs_test.fs", "../LearnOpenGL/res/shader_gs_test.gs");
 	Shader shader_instance = Shader("../LearnOpenGL/res/shader_instance.vs", "../LearnOpenGL/res/shader_instance.fs");
+	Shader shader_cube = Shader("../LearnOpenGL/res/shader_cube.vs", "../LearnOpenGL/res/shader_cube.fs");
+	Shader shader_screen = Shader("../LearnOpenGL/res/shader_screen.vs", "../LearnOpenGL/res/shader_screen.fs");
 
 	//Model model = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 
@@ -385,6 +389,7 @@ int main()
 	glm::mat4 projection = camera_main->getProjection();
 
 	shader_obj.setBlock("Camera", 0);
+	shader_cube.setBlock("Camera", 0);
 	// shader_normal.setBlock("Camera", 0);
 
 	GLuint UBO_camera;
@@ -397,6 +402,50 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
+	GLuint fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	GLuint tex_buffer;
+	glGenTextures(1, &tex_buffer);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex_buffer); //glBindTexture(GL_TEXTURE_2D, tex_buffer);
+	
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, Config::Screen_width, Config::Screen_height, GL_TRUE);// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, tex_buffer, 0);// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_buffer, 0);
+
+	GLuint rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, Config::Screen_width, Config::Screen_height); // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Config::Screen_width, Config::Screen_height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error::FrameBuffer:Frame buffer is not complete!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GLuint fbo_intermediate;
+	glGenFramebuffers(1, &fbo_intermediate);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_intermediate);
+
+	GLuint tex_screen;
+	glGenTextures(1, &tex_screen);
+	glBindTexture(GL_TEXTURE_2D, tex_screen);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_screen, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error::FrameBuffer:Intermediate Frame buffer is not complete!" << std::endl;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
@@ -408,13 +457,14 @@ int main()
 		//camera_main->update();
 
 		// 处理渲染指令
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
 		glm::mat4 transform = glm::mat4(1.0);
-		shader_obj.use();
-		shader_obj.setMatrix4f("transform", transform);
-		model_planet.draw(shader_obj);
+		//shader_obj.use();
+		//shader_obj.setMatrix4f("transform", transform);
+		//model_planet.draw(shader_obj);
 
 		//for (int i = 0; i < amount; i ++)
 		//{
@@ -422,8 +472,32 @@ int main()
 		//	shader_obj_ins.setMatrix4f("transform", model_matrices[i]);
 		//	model_rock.draw(shader_obj_ins);
 		//}
-		shader_obj_ins.use();
-		model_rock.drawInstance(shader_obj_ins, amount);
+		//shader_obj_ins.use();
+		//model_rock.drawInstance(shader_obj_ins, amount);
+
+		transform = glm::mat4(1.0f);
+		transform = glm::rotate(transform, 30.0f, glm::vec3(10.0f, 10.0f, 10.0f));
+		shader_cube.use();
+		shader_cube.setMatrix4f("transform", transform);
+		glBindVertexArray(VAO_cube);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_intermediate);
+		glBlitFramebuffer(0,0,Config::Screen_width, Config::Screen_height, 0, 0, Config::Screen_width, Config::Screen_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		transform = glm::mat4(1.0f);
+		shader_screen.use();
+		glBindVertexArray(VAO_plane);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex_screen);
+		shader_screen.setInt("screen_texture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
