@@ -143,6 +143,8 @@
     <None Include="res\shader.fs" />
     <None Include="res\shader.gs" />
     <None Include="res\shader.vs" />
+    <None Include="res\shader_410_advancedlight.fs" />
+    <None Include="res\shader_410_advancedlight.vs" />
     <None Include="res\shader_blend.fs" />
     <None Include="res\shader_blend.vs" />
     <None Include="res\shader_cube.fs" />

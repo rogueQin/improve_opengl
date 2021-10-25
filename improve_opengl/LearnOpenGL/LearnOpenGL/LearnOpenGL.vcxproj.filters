@@ -134,6 +134,12 @@
     <None Include="res\shader_screen.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_410_advancedlight.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_410_advancedlight.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
