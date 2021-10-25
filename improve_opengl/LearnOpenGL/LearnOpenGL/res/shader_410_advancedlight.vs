@@ -19,7 +19,7 @@ out vec3 Normal;
 
 void main()
 { 
-	Normal = aNormal;
+	Normal = mat3(transpose(inverse(transform))) * aNormal;
 	TexCoords = aTexCoords;
 	FragPos = vec3(transform * vec4(aPosition, 1.0));
 
