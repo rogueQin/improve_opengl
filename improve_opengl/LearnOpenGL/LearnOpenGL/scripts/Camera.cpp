@@ -174,8 +174,10 @@ glm::mat4 Camera::getView()
 
 glm::mat4 Camera::getProjection() 
 {
-	glm::mat4 projection = glm::perspective(glm::radians(this->fov), Config::Screen_width / Config::Screen_height, this->near, this->far);
-	return projection;
+	//glm::mat4 projection_orth = glm::ortho(-10.0f, 10.0f, -9.0f, 9.0f, 0.05f, 25.0f);
+	//return projection_orth;
+	glm::mat4 projection_perspective = glm::perspective(glm::radians(this->fov), Config::Screen_width / Config::Screen_height, this->near, this->far);
+	return projection_perspective;
 }
 
 

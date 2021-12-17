@@ -77,23 +77,23 @@ uniform PointLight pointLight;
 void main()
 {	
 	// vec3 result = vec3(texture(material.texture_diffuse1, TexCoords));
-	vec4 texColor = texture(material.texture_diffuse1, TexCoords);
+	// vec4 texColor = texture(material.texture_diffuse1, TexCoords);
 	// color = vec4(result, 1.0f);
-
+	vec3 result = vec3(0.0f);
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
 
 	// vec3 result = vec3(0.0f);
 	
-	// result += calcDirectionLight(directionLight, normal, viewDir);
+	result += calcDirectionLight(directionLight, normal, viewDir);
 	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
 	// {
 	 	// result = calcPointLight(pointLight, normal, viewDir, FragPos);
 	// }
 	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
 
-	// color = vec4(result, 1.0f);
-	color = texColor;
+	color = vec4(result, 1.0f);
+	// color = texColor;
 }
 
 

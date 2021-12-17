@@ -13,6 +13,15 @@
 
 
 GLfloat vertices_cube [] = {
+
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
 		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
 		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
@@ -53,23 +62,17 @@ GLfloat vertices_cube [] = {
 		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
 };
 
 GLfloat vertices_panel [] = {
-	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-	 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 5.0f,
+	 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 5.0f, 5.0f,
+	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 5.0f, 0.0f,
 						
-	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 5.0f, 0.0f,
 	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
+	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 5.0f
 };
 
 GLfloat vertices_skybox[] = {
@@ -221,16 +224,17 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 1.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, -0.4f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	//camera_main = new Camera(glm::vec3(7.0f, 7.0f, -7.0f), glm::vec3(-7.0f, -7.0f, 7.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetCursorPosCallback(window, mouse_callback);
+	//glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
 	
@@ -254,16 +258,81 @@ int main()
 		glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
 
-	Model model_planet = Model("../LearnOpenGL/res/planet/planet.obj");
-	Model model_rock = Model("../LearnOpenGL/res/rock/rock.obj");
-	Model model_nanosuit = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	GLuint VAO_BG;
+	glGenVertexArrays(1, &VAO_BG);
+	glBindVertexArray(VAO_BG);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
 
-	unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
-	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wood.png");
-	unsigned int grass_texture = loadTexture("../LearnOpenGL/res/grass.png");
-	unsigned int window_texture = loadTexture("../LearnOpenGL/res/blending_transparent_window.png");	
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
 
-	Shader shader_advancedlight = Shader("../LearnOpenGL/res/shader_410_advancedlight.vs", "../LearnOpenGL/res/shader_410_advancedlight.fs");
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+
+	// 
+	GLuint VBO_box;
+	glGenBuffers(1, &VBO_box);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_box);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cube), vertices_cube, GL_STATIC_DRAW);
+
+	GLuint VAO_box;
+	glGenVertexArrays(1, &VAO_box);
+	glBindVertexArray(VAO_box);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+
+	// 帧缓冲对象 depth map buffer
+	GLuint depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	// 纹理缓冲附件
+	unsigned int depthMapTexture;
+	glGenTextures(1, &depthMapTexture);
+	glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, Config::DepthMap_width, Config::DepthMap_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	// 渲染缓冲对象附件
+	unsigned int depthMapRBO;
+	glGenRenderbuffers(1, &depthMapRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthMapRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Config::Screen_width, Config::Screen_height);
+	
+	// 帧缓冲状态检测
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthMapRBO);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+
+	//Model model_planet = Model("../LearnOpenGL/res/planet/planet.obj");
+	//Model model_rock = Model("../LearnOpenGL/res/rock/rock.obj");
+	//Model model_nanosuit = Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+
+	// unsigned int cube_texture = loadTexture("../LearnOpenGL/res/container2.png");
+	 unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wood.png");
+	//unsigned int pushYourLuck_texture = loadTexture("../LearnOpenGL/res/GameObject.png");
+	//unsigned int pushYourBG_texture = loadTexture("../LearnOpenGL/res/GameBG.png");
+	// unsigned int grass_texture = loadTexture("../LearnOpenGL/res/grass.png");
+	// unsigned int window_texture = loadTexture("../LearnOpenGL/res/blending_transparent_window.png");	
+
+	Shader shader_light_view = Shader("../LearnOpenGL/res/shader_431_light_view.vs", "../LearnOpenGL/res/shader_431_light_view.fs");
+	Shader shader_advancedlight = Shader("../LearnOpenGL/res/shader_431_shadow_mapping.vs", "../LearnOpenGL/res/shader_431_shadow_mapping.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -286,9 +355,53 @@ int main()
 	{
 		// 检查并调用事件
 		glfwPollEvents();	
-
 		// 处理输入事件 
 		processInput(window);
+
+		glm::mat4 trans = glm::mat4(1.0f);
+
+		// 生成深度缓冲
+		glViewport(0, 0, Config::DepthMap_width, Config::DepthMap_height);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glm::vec3 light_position = glm::vec3(7.0f, 7.0f, -7.0f);
+		glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 25.0f);
+		glm::mat4 light_view = glm::lookAt(light_position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightSpaceMatrix = light_projection * light_view;
+
+		shader_light_view.use();
+		shader_light_view.setMatrix4f("light_space_matrix", lightSpaceMatrix);
+
+		trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		trans = glm::scale(trans, glm::vec3(10, 10, 1));
+		shader_light_view.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_BG);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(-3, 1.5, -3));
+		shader_light_view.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_box);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0, 0.6, 0));
+		shader_light_view.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_box);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(2, 2, 0));
+		shader_light_view.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_box);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
+
 
 		// 处理渲染指令
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -297,35 +410,91 @@ int main()
 		camera_main->update();
 		view = camera_main->getView();
 		projection = camera_main->getProjection();
+		//view = light_view;
+		//projection = light_projection;
+		
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+		// glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(render_distance));
 
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, floor_texture);
-
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		trans = glm::scale(trans, glm::vec3(5,5,5));
 		shader_advancedlight.use();
 		// material
 		shader_advancedlight.setFloat("material.shininess", 32.0f);
-		shader_advancedlight.setInt("material.texture_diffuse1", 0);
 		// camera
-		shader_advancedlight.setVec3f("viewPos", camera_main->getCameraPosition());
+		//shader_advancedlight.setVec3f("viewPos", camera_main->getCameraPosition());
+		shader_advancedlight.setVec3f("viewPos", light_position);
+		
+		// direction_light
+		shader_advancedlight.setVec3f("directionLight.direction", glm::vec3(-1.0f, -1.0f, 1.0f));
+		shader_advancedlight.setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_advancedlight.setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_advancedlight.setVec3f("directionLight.specular", glm::vec3(1.0f));
+
 		// point light
-		shader_advancedlight.setVec3f("pointLight.position", glm::vec3(0.0f, 1.0f, 0.0f));
-		shader_advancedlight.setVec3f("pointLight.ambient", glm::vec3(0.2f));
-		shader_advancedlight.setVec3f("pointLight.diffuse", glm::vec3(0.1f));
-		shader_advancedlight.setVec3f("pointLight.specular", glm::vec3(0.9f));
-		shader_advancedlight.setFloat("pointLight.constant", 1.0f);
-		shader_advancedlight.setFloat("pointLight.linear", 0.0f);
-		shader_advancedlight.setFloat("pointLight.quadratic", 0.0f);
+		//shader_advancedlight.setVec3f("pointLight.position", glm::vec3(0.0f, 1.0f, 0.0f));
+		//shader_advancedlight.setVec3f("pointLight.ambient", glm::vec3(0.2f));
+		//shader_advancedlight.setVec3f("pointLight.diffuse", glm::vec3(0.1f));
+		//shader_advancedlight.setVec3f("pointLight.specular", glm::vec3(0.9f));
+		//shader_advancedlight.setFloat("pointLight.constant", 1.0f);
+		//shader_advancedlight.setFloat("pointLight.linear", 0.0f);
+		//shader_advancedlight.setFloat("pointLight.quadratic", 0.0f);
+		
 		// transform
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, floor_texture);
+		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		trans = glm::mat4(1.0f);
+		//trans = glm::translate(trans, glm::vec3(0, 0, 0));
+		trans = glm::rotate(trans, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		trans = glm::scale(trans, glm::vec3(10, 10, 1));
 		shader_advancedlight.setMatrix4f("transform", trans);
-		//model_nanosuit.draw(shader_advancedlight);
-		glBindVertexArray(VAO_panel);
+		//render_distance = glm::mat4(1.0f);
+		//shader_advancedlight.setMatrix4f("distance", render_distance);
+		glBindVertexArray(VAO_BG);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, floor_texture);
+		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(-3, 1.5, -3));
+		shader_advancedlight.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_box);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0, 0.6, 0));
+		shader_advancedlight.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_box);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(2, 2, 0));
+		shader_advancedlight.setMatrix4f("transform", trans);
+		glBindVertexArray(VAO_box);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// 颜色混合
+		//glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, pushYourLuck_texture);
+		//shader_advancedlight.setInt("material.texture_diffuse1", 0);
+
+		//trans = glm::mat4(1.0f);
+		//trans = glm::rotate(trans, glm::radians(15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//trans = glm::scale(trans, glm::vec3(6, 6, 1));
+		//shader_advancedlight.setMatrix4f("transform", trans);
+
+		//render_distance = glm::mat4(1.0f);
+		//render_distance = glm::translate(render_distance, glm::vec3(-0.3, -0.6, 0));
+		//shader_advancedlight.setMatrix4f("distance", render_distance);
+		////model_nanosuit.draw(shader_advancedlight);
+		//glBindVertexArray(VAO_panel);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
@@ -344,8 +513,8 @@ unsigned int loadTexture(std::string fileName)
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

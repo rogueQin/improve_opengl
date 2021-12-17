@@ -13,7 +13,7 @@ layout (std140) uniform Camera
 };
 
 uniform mat4 transform;
-uniform mat4 distance;
+// uniform mat4 distance;
 
 out vec2 TexCoords;
 out vec3 FragPos;
@@ -26,6 +26,7 @@ void main()
 	TexCoords = aTexCoords;
 	FragPos = vec3(transform * vec4(aPosition, 1.0));
 
-	vec4 render_pos = distance * projection * view * vec4(FragPos, 1.0);
-	gl_Position = render_pos;
+	// vec4 render_pos = distance * projection * view * vec4(FragPos, 1.0);
+
+	gl_Position = projection * view * vec4(FragPos, 1.0);
 }
