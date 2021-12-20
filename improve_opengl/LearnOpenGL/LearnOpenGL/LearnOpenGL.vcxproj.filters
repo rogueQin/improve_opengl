@@ -152,6 +152,12 @@
     <None Include="res\shader_431_light_view.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_431_depth_view.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_431_depth_view.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">

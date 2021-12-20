@@ -224,17 +224,18 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, -0.4f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
-	//camera_main = new Camera(glm::vec3(7.0f, 7.0f, -7.0f), glm::vec3(-7.0f, -7.0f, 7.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	// camera_main = new Camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	// camera_main = new Camera(glm::vec3(7.0f, 7.0f, -7.0f), glm::vec3(-7.0f, -7.0f, 7.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	//glfwSetCursorPosCallback(window, mouse_callback);
-	//glfwSetScrollCallback(window, scroll_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
 	
@@ -293,7 +294,6 @@ int main()
 	// 帧缓冲对象 depth map buffer
 	GLuint depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	// 纹理缓冲附件
 	unsigned int depthMapTexture;
 	glGenTextures(1, &depthMapTexture);
@@ -303,9 +303,13 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	// 渲染缓冲对象附件
 	unsigned int depthMapRBO;
 	glGenRenderbuffers(1, &depthMapRBO);
@@ -332,13 +336,14 @@ int main()
 	// unsigned int window_texture = loadTexture("../LearnOpenGL/res/blending_transparent_window.png");	
 
 	Shader shader_light_view = Shader("../LearnOpenGL/res/shader_431_light_view.vs", "../LearnOpenGL/res/shader_431_light_view.fs");
-	Shader shader_advancedlight = Shader("../LearnOpenGL/res/shader_431_shadow_mapping.vs", "../LearnOpenGL/res/shader_431_shadow_mapping.fs");
+	Shader shader_depth_view = Shader("../LearnOpenGL/res/shader_431_depth_view.vs", "../LearnOpenGL/res/shader_431_depth_view.fs");
+	Shader shader_shadow_mapping = Shader("../LearnOpenGL/res/shader_431_shadow_mapping.vs", "../LearnOpenGL/res/shader_431_shadow_mapping.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
 	glm::mat4 projection = camera_main->getProjection();
 
-	shader_advancedlight.setBlock("Camera", 0);
+	shader_shadow_mapping.setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -360,10 +365,14 @@ int main()
 
 		glm::mat4 trans = glm::mat4(1.0f);
 
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		// 生成深度缓冲
 		glViewport(0, 0, Config::DepthMap_width, Config::DepthMap_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
+
 		glm::vec3 light_position = glm::vec3(7.0f, 7.0f, -7.0f);
 		glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 25.0f);
 		glm::mat4 light_view = glm::lookAt(light_position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -401,104 +410,108 @@ int main()
 
 
 
+		
+		/** 
+		
+		// 渲染深度贴图
+		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		camera_main->setCameraPosition(glm::vec3(0.0f, 0.0f, 5.0f));
+		camera_main->setCameraFront(glm::vec3(0.0f, 0.0f, -5.0f));
+		camera_main->setCameraUp(glm::vec3(0.0f, 1.0f, 0.0f));
+		camera_main->update();
+		view = camera_main->getView();
+		projection = camera_main->getProjection();
+
+		shader_depth_view.use();
+		shader_depth_view.setMatrix4f("view", view);
+		shader_depth_view.setMatrix4f("projection", projection);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+
+		shader_depth_view.setInt("texture_diffuse", 0); 
+
+		trans = glm::mat4(1.0f);
+		trans = glm::scale(trans, glm::vec3(1.5));
+		shader_depth_view.setMatrix4f("transform", trans);
+
+		glBindVertexArray(VAO_panel);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		*/
 
 
 		// 处理渲染指令
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		camera_main->update();
 		view = camera_main->getView();
 		projection = camera_main->getProjection();
-		//view = light_view;
-		//projection = light_projection;
 		
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 		// glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(render_distance));
 
-		shader_advancedlight.use();
+		shader_shadow_mapping.use();
 		// material
-		shader_advancedlight.setFloat("material.shininess", 32.0f);
+		shader_shadow_mapping.setFloat("material.shininess", 32.0f);
 		// camera
-		//shader_advancedlight.setVec3f("viewPos", camera_main->getCameraPosition());
-		shader_advancedlight.setVec3f("viewPos", light_position);
+		shader_shadow_mapping.setVec3f("viewPos", camera_main->getCameraPosition());
 		
 		// direction_light
-		shader_advancedlight.setVec3f("directionLight.direction", glm::vec3(-1.0f, -1.0f, 1.0f));
-		shader_advancedlight.setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		shader_advancedlight.setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		shader_advancedlight.setVec3f("directionLight.specular", glm::vec3(1.0f));
+		shader_shadow_mapping.setVec3f("directionLight.direction", glm::vec3(-1.0f, -1.0f, 1.0f));
+		shader_shadow_mapping.setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_shadow_mapping.setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_shadow_mapping.setVec3f("directionLight.specular", glm::vec3(1.0f));
 
-		// point light
-		//shader_advancedlight.setVec3f("pointLight.position", glm::vec3(0.0f, 1.0f, 0.0f));
-		//shader_advancedlight.setVec3f("pointLight.ambient", glm::vec3(0.2f));
-		//shader_advancedlight.setVec3f("pointLight.diffuse", glm::vec3(0.1f));
-		//shader_advancedlight.setVec3f("pointLight.specular", glm::vec3(0.9f));
-		//shader_advancedlight.setFloat("pointLight.constant", 1.0f);
-		//shader_advancedlight.setFloat("pointLight.linear", 0.0f);
-		//shader_advancedlight.setFloat("pointLight.quadratic", 0.0f);
-		
-		// transform
+		// texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, floor_texture);
-		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		shader_shadow_mapping.setInt("material.texture_diffuse1", 0);
+
+		// shadow mapping
+		shader_shadow_mapping.setMatrix4f("lightSpaceMatrix", lightSpaceMatrix);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+		shader_shadow_mapping.setInt("ShadowTexture", 1);
+		
+		// transform info
 		trans = glm::mat4(1.0f);
-		//trans = glm::translate(trans, glm::vec3(0, 0, 0));
 		trans = glm::rotate(trans, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		trans = glm::scale(trans, glm::vec3(10, 10, 1));
-		shader_advancedlight.setMatrix4f("transform", trans);
-		//render_distance = glm::mat4(1.0f);
-		//shader_advancedlight.setMatrix4f("distance", render_distance);
+		shader_shadow_mapping.setMatrix4f("transform", trans);
 		glBindVertexArray(VAO_BG);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, floor_texture);
-		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		shader_shadow_mapping.setInt("material.texture_diffuse1", 0);
 		trans = glm::mat4(1.0f);
 		trans = glm::translate(trans, glm::vec3(-3, 1.5, -3));
-		shader_advancedlight.setMatrix4f("transform", trans);
+		shader_shadow_mapping.setMatrix4f("transform", trans);
 		glBindVertexArray(VAO_box);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		shader_shadow_mapping.setInt("material.texture_diffuse1", 0);
 		trans = glm::mat4(1.0f);
 		trans = glm::translate(trans, glm::vec3(0, 0.6, 0));
-		shader_advancedlight.setMatrix4f("transform", trans);
+		shader_shadow_mapping.setMatrix4f("transform", trans);
 		glBindVertexArray(VAO_box);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		shader_advancedlight.setInt("material.texture_diffuse1", 0);
+		shader_shadow_mapping.setInt("material.texture_diffuse1", 0);
 		trans = glm::mat4(1.0f);
 		trans = glm::translate(trans, glm::vec3(2, 2, 0));
-		shader_advancedlight.setMatrix4f("transform", trans);
+		shader_shadow_mapping.setMatrix4f("transform", trans);
 		glBindVertexArray(VAO_box);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		// 颜色混合
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, pushYourLuck_texture);
-		//shader_advancedlight.setInt("material.texture_diffuse1", 0);
-
-		//trans = glm::mat4(1.0f);
-		//trans = glm::rotate(trans, glm::radians(15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		//trans = glm::scale(trans, glm::vec3(6, 6, 1));
-		//shader_advancedlight.setMatrix4f("transform", trans);
-
-		//render_distance = glm::mat4(1.0f);
-		//render_distance = glm::translate(render_distance, glm::vec3(-0.3, -0.6, 0));
-		//shader_advancedlight.setMatrix4f("distance", render_distance);
-		////model_nanosuit.draw(shader_advancedlight);
-		//glBindVertexArray(VAO_panel);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
+
+	// glDeleteVertexArrays(1, &VAO_panel);
+	// glDeleteVertexArrays(1, &VBO_panel);
 
 	glfwTerminate();
 	return 0;
@@ -513,8 +526,8 @@ unsigned int loadTexture(std::string fileName)
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

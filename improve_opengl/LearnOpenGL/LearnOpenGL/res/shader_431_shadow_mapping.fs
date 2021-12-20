@@ -63,16 +63,19 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 // 聚光灯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
+float ShadowCalculation(vec4 fragPosLightSpace);
 
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
+in vec4 FragPosLightSpace;
 
 uniform vec3 viewPos;
 
 uniform Material material;
 uniform DirectionLight directionLight;
 uniform PointLight pointLight;
+uniform sampler2D ShadowTexture;
 
 void main()
 {	
@@ -82,8 +85,6 @@ void main()
 	vec3 result = vec3(0.0f);
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
-
-	// vec3 result = vec3(0.0f);
 	
 	result += calcDirectionLight(directionLight, normal, viewDir);
 	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
@@ -93,9 +94,18 @@ void main()
 	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
 
 	color = vec4(result, 1.0f);
-	// color = texColor;
 }
 
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	projCoords = projCoords * 0.5 + 0.5;
+	float closestDepth = texture(ShadowTexture, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+
+	float shadowValue = currentDepth > closestDepth ? 1.0 : 0.0;
+	return shadowValue;
+}
 
 // 平行光
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
@@ -116,7 +126,9 @@ vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 	vec3 specular = light.specular * (spec * specularTexture); 
 
-	return ambient + diffuse + specular;
+	float shadow = ShadowCalculation(FragPosLightSpace);
+
+	return ambient + (1.0 - shadow) * (diffuse + specular);
 }
 
 // 点光源

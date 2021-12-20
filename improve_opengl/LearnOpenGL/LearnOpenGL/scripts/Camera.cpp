@@ -4,7 +4,7 @@
 Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, float fov, float near, float far) 
 {
 	this->camera_pos = pos;
-	this->camera_front = front;
+	this->camera_front = glm::normalize(front);
 	this->camera_up = up;
 	this->fov = fov;
 	this->near = near;

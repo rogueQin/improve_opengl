@@ -145,6 +145,8 @@
     <None Include="res\shader.vs" />
     <None Include="res\shader_410_advancedlight.fs" />
     <None Include="res\shader_410_advancedlight.vs" />
+    <None Include="res\shader_431_depth_view.fs" />
+    <None Include="res\shader_431_depth_view.vs" />
     <None Include="res\shader_431_light_view.fs" />
     <None Include="res\shader_431_light_view.vs" />
     <None Include="res\shader_431_shadow_mapping.fs" />
