@@ -277,9 +277,9 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	 camera_main = new Camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 	// camera_main = new Camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
-	// camera_main = new Camera(glm::vec3(7.0f, 7.0f, -7.0f), glm::vec3(-7.0f, -7.0f, 7.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	//camera_main = new Camera(glm::vec3(24.0f, 24, -24.0f), glm::vec3(-14.0f, -14.0f, 14.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -438,9 +438,10 @@ int main()
 
 		glCullFace(GL_FRONT);
 
-		glm::vec3 light_position = glm::vec3(7.0f, 7.0f, -7.0f);
-		glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 25.0f);
-		glm::mat4 light_view = glm::lookAt(light_position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::vec3 light_position = glm::vec3(24.0f, 24.0f, -24.0f);
+		glm::mat4 light_projection = glm::perspective(glm::radians(45.0f), Config::DepthMap_width / Config::DepthMap_height, 0.1f, 100.0f);
+		//glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 25.0f);
+		glm::mat4 light_view = glm::lookAt(light_position, glm::vec3(-24.0f, -24.0f, 24.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = light_projection * light_view;
 
 		shader_light_view.use();
@@ -473,7 +474,7 @@ int main()
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		/**
+		/***/
 		// 渲染深度贴图
 		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -502,9 +503,9 @@ int main()
 
 		glBindVertexArray(VAO_panel);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		*/
+		
 
-		/***/
+		/**
 		// 处理渲染指令
 		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -570,7 +571,7 @@ int main()
 		shader_shadow_mapping.setMatrix4f("transform", trans);
 		glBindVertexArray(VAO_box);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
+		*/
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);

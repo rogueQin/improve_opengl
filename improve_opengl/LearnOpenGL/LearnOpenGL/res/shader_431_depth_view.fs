@@ -16,8 +16,9 @@ void main()
 {
 	// vec3 result = vec3(texture(texture_diffuse, TexCoords));
 	float depthValue = texture(texture_diffuse, TexCoords).r;
-	depthValue = LinearizeDepth(depthValue);
+	depthValue = LinearizeDepth(depthValue) / far;
 	color = vec4(vec3(depthValue), 1.0f);
+	// color = vec4(0.5);
 }
 
 float LinearizeDepth(float depth)
