@@ -63,39 +63,66 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 // 聚光灯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
+// 阴影深度计算
+float ShadowCalculation(vec4 fragPosLightSpace);
+
+
 
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
+in vec4 FragPosLightSpace;
 
 uniform vec3 viewPos;
 
 uniform Material material;
 uniform DirectionLight directionLight;
 uniform PointLight pointLight;
+uniform sampler2D ShadowTexture;
+
+
 
 void main()
 {	
 	// vec3 result = vec3(texture(material.texture_diffuse1, TexCoords));
-	vec4 texColor = texture(material.texture_diffuse1, TexCoords);
+	// vec4 texColor = texture(material.texture_diffuse1, TexCoords);
 	// color = vec4(result, 1.0f);
-
+	vec3 result = vec3(0.0f);
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
-
-	// vec3 result = vec3(0.0f);
 	
-	// result += calcDirectionLight(directionLight, normal, viewDir);
+	result += calcDirectionLight(directionLight, normal, viewDir);
 	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
 	// {
 	 	// result = calcPointLight(pointLight, normal, viewDir, FragPos);
 	// }
 	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
 
-	// color = vec4(result, 1.0f);
-	color = texColor;
+	color = vec4(result, 1.0f);
 }
 
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	projCoords = projCoords * 0.5 + 0.5;
+
+	vec2 texelSize = 1.0 / textureSize(ShadowTexture, 0);
+
+	float shadowValue = 0.0;
+	float currentDepth = projCoords.z;
+	float closestDepth = 0.0;
+	for(int i = -1; i <= 1; i++)
+	{
+		for(int j = -1; j <= 1; j++)
+		{
+			float closestDepth = texture(ShadowTexture, projCoords.xy + vec2(i, j) * texelSize).r;
+			shadowValue += currentDepth > closestDepth ? 1.0 : 0.0;
+		}
+	}
+	shadowValue /= 9;
+
+	return shadowValue;
+}
 
 // 平行光
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
@@ -116,7 +143,9 @@ vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 	vec3 specular = light.specular * (spec * specularTexture); 
 
-	return ambient + diffuse + specular;
+	float shadow = ShadowCalculation(FragPosLightSpace);
+
+	return ambient + (1.0 - shadow) * (diffuse + specular);
 }
 
 // 点光源

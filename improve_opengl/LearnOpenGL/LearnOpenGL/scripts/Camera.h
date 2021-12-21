@@ -58,6 +58,14 @@ public:
 
 	void setFov(float fov);
 
+	float getNear();
+
+	void setNear(float near_value);
+
+	float getFar();
+	
+	void setFar(float far_value);
+
 	void setCameraType();
 
 	void mouse_callback(GLFWwindow * window, double xpos, double ypos);
