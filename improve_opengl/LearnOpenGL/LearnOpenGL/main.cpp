@@ -398,9 +398,9 @@ int main()
 	// unsigned int grass_texture = loadTexture("../LearnOpenGL/res/grass.png");
 	// unsigned int window_texture = loadTexture("../LearnOpenGL/res/blending_transparent_window.png");	
 
-	Shader shader_light_view = Shader("../LearnOpenGL/res/shader_431_light_view.vs", "../LearnOpenGL/res/shader_431_light_view.fs");
-	Shader shader_depth_view = Shader("../LearnOpenGL/res/shader_431_depth_view.vs", "../LearnOpenGL/res/shader_431_depth_view.fs");
-	Shader shader_shadow_mapping = Shader("../LearnOpenGL/res/shader_431_shadow_mapping.vs", "../LearnOpenGL/res/shader_431_shadow_mapping.fs");
+	Shader shader_light_view = Shader("../LearnOpenGL/res/shader_432_light_view.vs", "../LearnOpenGL/res/shader_432_light_view.fs");
+	Shader shader_depth_view = Shader("../LearnOpenGL/res/shader_432_depth_view.vs", "../LearnOpenGL/res/shader_432_depth_view.fs");
+	Shader shader_shadow_mapping = Shader("../LearnOpenGL/res/shader_432_shadow_mapping.vs", "../LearnOpenGL/res/shader_432_shadow_mapping.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();

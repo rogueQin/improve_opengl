@@ -158,6 +158,24 @@
     <None Include="res\shader_431_depth_view.vs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\shader_432_depth_view.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_432_depth_view.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_432_light_view.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_432_light_view.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_432_shadow_mapping.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\shader_432_shadow_mapping.vs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
