@@ -4,7 +4,7 @@
 Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, float fov, float near, float far) 
 {
 	this->camera_pos = pos;
-	this->camera_front = front;
+	this->camera_front = glm::normalize(front);
 	this->camera_up = up;
 	this->fov = fov;
 	this->near = near;
@@ -55,7 +55,29 @@ void Camera::setFov(float fov)
 	this->fov = fov;
 }
 
-void Camera::setCameraType() {}
+float Camera::getNear() 
+{
+	return this->near;
+}
+
+void Camera::setNear(float near_value) 
+{
+	this->near = near_value;
+}
+
+float Camera::getFar() 
+{
+	return this->far;
+}
+
+void Camera::setFar(float far_value) 
+{
+	this->far = far_value;
+}
+
+void Camera::setCameraType() 
+{
+}
 
 void Camera::mouse_callback(GLFWwindow * window, double xpos, double ypos) 
 {
@@ -174,8 +196,10 @@ glm::mat4 Camera::getView()
 
 glm::mat4 Camera::getProjection() 
 {
-	glm::mat4 projection = glm::perspective(glm::radians(this->fov), Config::Screen_width / Config::Screen_height, this->near, this->far);
-	return projection;
+	//glm::mat4 projection_orth = glm::ortho(-10.0f, 10.0f, -9.0f, 9.0f, 0.05f, 25.0f);
+	//return projection_orth;
+	glm::mat4 projection_perspective = glm::perspective(glm::radians(this->fov), Config::Screen_width / Config::Screen_height, this->near, this->far);
+	return projection_perspective;
 }
 
 
