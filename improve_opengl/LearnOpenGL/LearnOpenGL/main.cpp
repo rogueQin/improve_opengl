@@ -473,7 +473,6 @@ int main()
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		
 		/**
 		// 渲染深度贴图
 		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
@@ -489,6 +488,8 @@ int main()
 		shader_depth_view.use();
 		shader_depth_view.setMatrix4f("view", view);
 		shader_depth_view.setMatrix4f("projection", projection);
+		shader_depth_view.setFloat("near", camera_main->getNear());
+		shader_depth_view.setFloat("far", camera_main->getFar());
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMapTexture);
@@ -501,7 +502,7 @@ int main()
 
 		glBindVertexArray(VAO_panel);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		*/ 
+		*/
 
 		/***/
 		// 处理渲染指令
@@ -570,8 +571,6 @@ int main()
 		glBindVertexArray(VAO_box);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
-
-
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);

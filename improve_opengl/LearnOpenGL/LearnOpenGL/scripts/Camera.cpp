@@ -55,7 +55,29 @@ void Camera::setFov(float fov)
 	this->fov = fov;
 }
 
-void Camera::setCameraType() {}
+float Camera::getNear() 
+{
+	return this->near;
+}
+
+void Camera::setNear(float near_value) 
+{
+	this->near = near_value;
+}
+
+float Camera::getFar() 
+{
+	return this->far;
+}
+
+void Camera::setFar(float far_value) 
+{
+	this->far = far_value;
+}
+
+void Camera::setCameraType() 
+{
+}
 
 void Camera::mouse_callback(GLFWwindow * window, double xpos, double ypos) 
 {

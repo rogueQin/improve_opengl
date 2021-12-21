@@ -63,7 +63,10 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 // 聚光灯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
+// 阴影深度计算
 float ShadowCalculation(vec4 fragPosLightSpace);
+
+
 
 in vec3 Normal;
 in vec3 FragPos;
@@ -76,6 +79,8 @@ uniform Material material;
 uniform DirectionLight directionLight;
 uniform PointLight pointLight;
 uniform sampler2D ShadowTexture;
+
+
 
 void main()
 {	
@@ -100,14 +105,21 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
-	float closestDepth = texture(ShadowTexture, projCoords.xy).r;
+
+	vec2 texelSize = 1.0 / textureSize(ShadowTexture, 0);
+
+	float shadowValue = 0.0;
 	float currentDepth = projCoords.z;
-	float shadow_bias = 0.005;
-
-	float shadowValue = currentDepth > closestDepth ? 1.0 : 0.0;
-
-	if(projCoords.z > 1.0)
-		shadowValue = 0.0;
+	float closestDepth = 0.0;
+	for(int i = -1; i <= 1; i++)
+	{
+		for(int j = -1; j <= 1; j++)
+		{
+			float closestDepth = texture(ShadowTexture, projCoords.xy + vec2(i, j) * texelSize).r;
+			shadowValue += currentDepth > closestDepth ? 1.0 : 0.0;
+		}
+	}
+	shadowValue /= 9;
 
 	return shadowValue;
 }
