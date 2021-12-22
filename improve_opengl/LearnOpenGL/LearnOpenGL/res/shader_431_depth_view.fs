@@ -5,7 +5,7 @@ out vec4 color;
 
 in vec2 TexCoords;
 
-// Éî¶ÈÖµ±ä»»·ÇÏßĞÔ
+// æ·±åº¦å€¼å˜æ¢éçº¿æ€§
 float LinearizeDepth(float depth);
 
 uniform sampler2D texture_diffuse;

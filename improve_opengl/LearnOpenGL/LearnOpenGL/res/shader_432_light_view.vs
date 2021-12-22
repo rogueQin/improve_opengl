@@ -8,4 +8,6 @@ uniform mat4 light_space_matrix;
 void main()
 {
 	gl_Position = light_space_matrix * transform * vec4(aPosition, 1.0);
+
+
 }

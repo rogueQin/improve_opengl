@@ -75,27 +75,27 @@ void Mesh::Draw(Shader &shader)
 
 void Mesh::setupMesh() 
 {
-	// ÉùÃ÷Ò»¸ö¶¥µã»º³å¶ÔÏó
+	// å£°æ˜Žä¸€ä¸ªé¡¶ç‚¹ç¼“å†²å¯¹è±¡
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAO);
-		// ÉèÖÃ¶¥µã»º³å¶ÔÏó»º³åÇøÀàÐÍ
+		// è®¾ç½®é¡¶ç‚¹ç¼“å†²å¯¹è±¡ç¼“å†²åŒºç±»åž‹
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-		// ¶¥µãË÷Òý
+		// é¡¶ç‚¹ç´¢å¼•
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()* sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-		// ¶¥µã
+		// é¡¶ç‚¹
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		// ·¨Ïß
+		// æ³•çº¿
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Normal));
-		// ÌùÍ¼
+		// è´´å›¾
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, TexCoords));
 	glBindVertexArray(0);

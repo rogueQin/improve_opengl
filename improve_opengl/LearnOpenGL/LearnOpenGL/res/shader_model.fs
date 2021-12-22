@@ -4,22 +4,22 @@
 out vec4 color;
 
 struct Material{
-	//(Í¨³£µÈÍ¬ÓÚÂş·´Éä¹âÕÕ) vec3 ambient; // »·¾³¹âÕÕ
-	// Âş·´ÉäÌùÍ¼
+	//(é€šå¸¸ç­‰åŒäºæ¼«åå°„å…‰ç…§) vec3 ambient; // ç¯å¢ƒå…‰ç…§
+	// æ¼«åå°„è´´å›¾
 	sampler2D texture_diffuse1;
 	sampler2D texture_diffuse2;
 	sampler2D texture_diffuse3;
 	sampler2D texture_diffuse4;
 	sampler2D texture_diffuse5;
 
-	// ¾µÃæ¹âÕÕ
+	// é•œé¢å…‰ç…§
 	sampler2D texture_specular1;
 	sampler2D texture_specular2;
 	sampler2D texture_specular3;
 	sampler2D texture_specular4;
 	sampler2D texture_specular5;
 
-	float shininess; // ·´¹â¶È
+	float shininess; // åå…‰åº¦
 };
 
 in vec2 TexCoords;

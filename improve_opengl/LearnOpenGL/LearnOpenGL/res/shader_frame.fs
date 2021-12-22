@@ -12,14 +12,14 @@ uniform sampler2D diffuse_texture;
 void main()
 {
 	vec4 texColor = texture(diffuse_texture, TexCoords);
-	// ·´Ïò
+	// åå‘
 	// vec4 outColor = vec4(vec3(1.0f) - vec3(texColor), 1.0f);
 	
-	// »Ò¶È
+	// ç°åº¦
 	// float average = (texColor.r + texColor.g + texColor.b) / 3.0f;
 	// vec4 outColor = vec4(average, average, average, 1.0f);
 
-	// ºËĞ§¹û
+	// æ ¸æ•ˆæœ
 	// float offset = 1.0f / 300.0f;
 	// vec2 offsets[9] = vec2[](
 	// 	vec2(-offset, offset),
@@ -51,7 +51,7 @@ void main()
 	// }
 	// vec4 outColor = vec4(kenal_col, 1.0f);
 
-	// Ä£ºı
+	// æ¨¡ç³Š
 	float offset = 1.0f / 300.0f;
 	vec2 offsets[25] = vec2[](
 		vec2(-offset*2, offset*2),	vec2(-offset, offset*2),	vec2(0.0f, offset*2),		vec2(offset, offset*2),		vec2(offset*2, offset*2),
@@ -81,7 +81,7 @@ void main()
 	}
 	vec4 outColor = vec4(kenal_col, 1.0f);
 
-	// ±ßÔµ¼ì²â
+	// è¾¹ç¼˜æ£€æµ‹
 	// float offset = 1.0f / 300.0f;
 	// vec2 offsets[9] = vec2[](
 	// 	vec2(-offset, offset),

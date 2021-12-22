@@ -4,34 +4,34 @@
 out vec4 color;
 
 struct Material{
-	//(Í¨³£µÈÍ¬ÓÚÂş·´Éä¹âÕÕ) vec3 ambient; // »·¾³¹âÕÕ
-	// Âş·´ÉäÌùÍ¼
+	//(é€šå¸¸ç­‰åŒäºæ¼«åå°„å…‰ç…§) vec3 ambient; // ç¯å¢ƒå…‰ç…§
+	// æ¼«åå°„è´´å›¾
 	sampler2D texture_diffuse1;
 	sampler2D texture_diffuse2;
 	sampler2D texture_diffuse3;
 	sampler2D texture_diffuse4;
 	sampler2D texture_diffuse5;
 
-	// ¾µÃæ¹âÕÕ
+	// é•œé¢å…‰ç…§
 	sampler2D texture_specular1;
 	sampler2D texture_specular2;
 	sampler2D texture_specular3;
 	sampler2D texture_specular4;
 	sampler2D texture_specular5;
 
-	float shininess; // ·´¹â¶È
+	float shininess; // åå…‰åº¦
 };
 
-// Æ½ĞĞ¹â
+// å¹³è¡Œå…‰
 struct DirectionLight{
 	// vec3 position;
 	vec3 direction; // 
-	vec3 ambient; // »·¾³¹âÕÕ
-	vec3 diffuse; // Âş·´Éä¹âÕÕ
-	vec3 specular; // ¾µÃæ¹âÕÕ
+	vec3 ambient; // ç¯å¢ƒå…‰ç…§
+	vec3 diffuse; // æ¼«åå°„å…‰ç…§
+	vec3 specular; // é•œé¢å…‰ç…§
 };
 
-// µã¹âÔ´
+// ç‚¹å…‰æº
 struct PointLight{
 	vec3 position;
 
@@ -44,7 +44,7 @@ struct PointLight{
 	float quadratic;
 };
 
-// ¾Û¹âµÆ
+// èšå…‰ç¯
 struct SpotLight{
 	vec3 ambient;
 	vec3 diffuse;
@@ -56,11 +56,11 @@ struct SpotLight{
 	float outerCutOff;
 };
 
-// Æ½ĞĞ¹â
+// å¹³è¡Œå…‰
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir);
-// µã¹âÔ´
+// ç‚¹å…‰æº
 vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
-// ¾Û¹âµÆ
+// èšå…‰ç¯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
 
@@ -97,10 +97,10 @@ void main()
 }
 
 
-// Æ½ĞĞ¹â
+// å¹³è¡Œå…‰
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 {
-	// ÌùÍ¼
+	// è´´å›¾
 	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, TexCoords));
 	vec3 specularTexture = vec3(texture(material.texture_specular1, TexCoords));
 	// ambient
@@ -119,10 +119,10 @@ vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 	return ambient + diffuse + specular;
 }
 
-// µã¹âÔ´
+// ç‚¹å…‰æº
 vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 {
-	// ÌùÍ¼
+	// è´´å›¾
 	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, TexCoords));
 	vec3 specularTexture = vec3(texture(material.texture_diffuse1, TexCoords));
 	// vec3 diffuseTexture = vec3(1.0f);
@@ -156,10 +156,10 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 	return ambient + diffuse + specular;
 }
 
-// ¾Û¹âµÆ
+// èšå…‰ç¯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 {
-	// ÌùÍ¼
+	// è´´å›¾
 	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, TexCoords));
 	vec3 specularTexture = vec3(texture(material.texture_specular1, TexCoords));
 

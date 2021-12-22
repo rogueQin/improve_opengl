@@ -4,9 +4,9 @@
 Cube::Cube(GLfloat * vertices_cube, int size)
 {
 	glGenBuffers(1, &VBO);
-	// ÉèÖÃ¶¥µã»º³å¶ÔÏó»º³åÇøÀàĞÍ
+	// è®¾ç½®é¡¶ç‚¹ç¼“å†²å¯¹è±¡ç¼“å†²åŒºç±»å‹
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// Ïò»º³åÇøÖĞĞ´ÈëÊı¾İ
+	// å‘ç¼“å†²åŒºä¸­å†™å…¥æ•°æ®
 	glBufferData(GL_ARRAY_BUFFER, size, vertices_cube, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &VAO);
@@ -25,9 +25,9 @@ Cube::Cube(GLfloat * vertices_cube, int size)
 Cube::Cube(GLfloat * vertices_cube, int size, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
 	glGenBuffers(1, &VBO);
-	// ÉèÖÃ¶¥µã»º³å¶ÔÏó»º³åÇøÀàĞÍ
+	// è®¾ç½®é¡¶ç‚¹ç¼“å†²å¯¹è±¡ç¼“å†²åŒºç±»å‹
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// Ïò»º³åÇøÖĞĞ´ÈëÊı¾İ
+	// å‘ç¼“å†²åŒºä¸­å†™å…¥æ•°æ®
 	glBufferData(GL_ARRAY_BUFFER, size, vertices_cube, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &VAO);
