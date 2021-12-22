@@ -132,6 +132,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scripts\Camera.cpp" />
     <ClCompile Include="scripts\Config.cpp" />
+    <ClCompile Include="scripts\Cube.cpp" />
     <ClCompile Include="scripts\glad.c" />
     <ClCompile Include="scripts\Mesh.cpp" />
     <ClCompile Include="scripts\Model.cpp" />
@@ -184,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="scripts\Camera.h" />
     <ClInclude Include="scripts\Config.h" />
+    <ClInclude Include="scripts\Cube.h" />
     <ClInclude Include="scripts\Mesh.h" />
     <ClInclude Include="scripts\Model.h" />
     <ClInclude Include="scripts\Shader.h" />
