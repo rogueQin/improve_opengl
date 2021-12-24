@@ -136,6 +136,7 @@
     <ClCompile Include="scripts\glad.c" />
     <ClCompile Include="scripts\Mesh.cpp" />
     <ClCompile Include="scripts\Model.cpp" />
+    <ClCompile Include="scripts\RenderBuffer.cpp" />
     <ClCompile Include="scripts\Shader.cpp" />
     <ClCompile Include="scripts\stb_image.cpp" />
   </ItemGroup>
@@ -188,6 +189,7 @@
     <ClInclude Include="scripts\Cube.h" />
     <ClInclude Include="scripts\Mesh.h" />
     <ClInclude Include="scripts\Model.h" />
+    <ClInclude Include="scripts\RenderBuffer.h" />
     <ClInclude Include="scripts\Shader.h" />
     <ClInclude Include="scripts\stb_image.h" />
   </ItemGroup>

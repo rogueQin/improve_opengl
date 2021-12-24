@@ -49,8 +49,8 @@ Cube::Cube(GLfloat * vertices_cube, int size, glm::vec3 position, glm::vec3 rota
 
 Cube::~Cube() 
 {
+	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteVertexArrays(1, &VBO);
 }
 
 void Cube::setPosition(glm::vec3 position) 

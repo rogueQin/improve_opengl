@@ -91,7 +91,8 @@ void main()
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
 	
-	result += calcDirectionLight(directionLight, normal, viewDir);
+	// result += calcDirectionLight(directionLight, normal, viewDir);
+	result += calcPointLight(pointLight, normal, viewDir, FragPos);
 	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
 	// {
 	 	// result = calcPointLight(pointLight, normal, viewDir, FragPos);
@@ -143,7 +144,9 @@ vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 	vec3 specular = light.specular * (spec * specularTexture); 
 
-	float shadow = ShadowCalculation(FragPosLightSpace);
+	// float shadow = ShadowCalculation(FragPosLightSpace);
+
+	float shadow = 0.0f;
 
 	return ambient + (1.0 - shadow) * (diffuse + specular);
 }
@@ -162,27 +165,23 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 	// ambient
 	vec3 ambient = light.ambient * diffuseTexture * attenuation;
 	
-	// diffuse
 	vec3 lightDir = normalize(light.position - fragPos);
+	vec3 halfwayDir = normalize(viewDir + lightDir);
+
+	// diffuse
 	float diff = max(dot(normal, lightDir), 0.0f);
 	vec3 diffuse = light.diffuse * (diff * diffuseTexture) * attenuation;
-	
-	bool blinn = true;
 
 	// specular
 	float spec = 0.0f;
-
-	// vec3 reflectDir = reflect(-lightDir, normal);
-	// spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-
-	vec3 halfwayDir = normalize(viewDir + lightDir);
 	spec = pow(max(dot(normal, -halfwayDir), 0.0), material.shininess);
 
 	vec3 specular = light.specular * (spec * specularTexture);//  * attenuation; 
 	// vec3 specular = vec3(0.0f);
 
-	return ambient + diffuse + specular;
+	float shadow = ShadowCalculation(FragPosLightSpace);
+
+	return ambient + (1.0 - shadow) * (diffuse + specular);
 }
 
 // 聚光灯
