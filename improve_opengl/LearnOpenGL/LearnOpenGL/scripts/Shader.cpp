@@ -37,7 +37,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath)
 	int success;
 	char infoLog[512];
 
-	// ¶¥µã×ÅÉ«Æ÷
+	// é¡¶ç‚¹ç€è‰²å™¨
 	vertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
@@ -48,7 +48,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath)
 		std::cout << "Error::shader::vertes::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// Æ¬¶Î×ÅÉ«Æ÷
+	// ç‰‡æ®µç€è‰²å™¨
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fShaderCode, NULL);
 	glCompileShader(fragment);
@@ -59,7 +59,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath)
 		std::cout << "Error::shader::fragemnt::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// ×ÅÉ«Æ÷³ÌĞò
+	// ç€è‰²å™¨ç¨‹åº
 	
 	ID = glCreateProgram();
 	glAttachShader(ID, vertex);
@@ -72,7 +72,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath)
 		std::cout << "Error::shader::program::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// ÇåÀíÁ¬½Óµ½³ÌĞò¶ÔÏóµÄ×ÅÉ«Æ÷
+	// æ¸…ç†è¿æ¥åˆ°ç¨‹åºå¯¹è±¡çš„ç€è‰²å™¨
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 }
@@ -122,7 +122,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath, const GLch
 	int success;
 	char infoLog[512];
 
-	// ¶¥µã×ÅÉ«Æ÷
+	// é¡¶ç‚¹ç€è‰²å™¨
 	vertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
@@ -133,7 +133,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath, const GLch
 		std::cout << "Error::shader::vertes::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// ¼¸ºÎ×ÅÉ«Æ÷
+	// å‡ ä½•ç€è‰²å™¨
 	geometry = glCreateShader(GL_GEOMETRY_SHADER);
 	glShaderSource(geometry, 1, &gShaderCode, NULL);
 	glCompileShader(geometry);
@@ -144,7 +144,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath, const GLch
 		std::cout << "Error::shader::geometry::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// Æ¬¶Î×ÅÉ«Æ÷
+	// ç‰‡æ®µç€è‰²å™¨
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fShaderCode, NULL);
 	glCompileShader(fragment);
@@ -155,7 +155,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath, const GLch
 		std::cout << "Error::shader::fragemnt::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// ×ÅÉ«Æ÷³ÌĞò
+	// ç€è‰²å™¨ç¨‹åº
 	ID = glCreateProgram();
 	glAttachShader(ID, vertex);
 	glAttachShader(ID, geometry);
@@ -168,7 +168,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragementPath, const GLch
 		std::cout << "Error::shader::program::compilation_failed\n" << infoLog << std::endl;
 	}
 
-	// ÇåÀíÁ¬½Óµ½³ÌĞò¶ÔÏóµÄ×ÅÉ«Æ÷
+	// æ¸…ç†è¿æ¥åˆ°ç¨‹åºå¯¹è±¡çš„ç€è‰²å™¨
 	glDeleteShader(vertex);
 	glDeleteShader(geometry);
 	glDeleteShader(fragment);
@@ -207,9 +207,9 @@ void Shader::setMatrix4f(const std::string &name, glm::mat4 transform) const
 {
 	GLuint uniformLocation = glGetUniformLocation(ID, name.c_str());
 	// uniformLocation 
-	// ²ÎÊı¶ş : ¾ØÕóÊıÁ¿
-	// ²ÎÊıÈı : ÊÇ·ñ½»»»¾ØÕó£¨ĞĞÁĞ¶Ô»»£©
-	// ²ÎÊıËÄ : ¾ØÕóÊı¾İ
+	// å‚æ•°äºŒ : çŸ©é˜µæ•°é‡
+	// å‚æ•°ä¸‰ : æ˜¯å¦äº¤æ¢çŸ©é˜µï¼ˆè¡Œåˆ—å¯¹æ¢ï¼‰
+	// å‚æ•°å›› : çŸ©é˜µæ•°æ®
 	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(transform));
 }
 

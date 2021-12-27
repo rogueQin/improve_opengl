@@ -37,8 +37,8 @@ private:
 
 
 	bool first_mounse = true;
-	// ortho Õı½»
-	// perspective Í¸ÊÓ
+	// ortho æ­£äº¤
+	// perspective é€è§†
 
 public:
 	Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, float fov, float near, float far);

@@ -3,22 +3,23 @@
 
 out vec4 color;
 
-in vec2 TexCoords;
+in vec3 TexCoords;
 
 // 深度值变换非线性
 float LinearizeDepth(float depth);
 
-uniform sampler2D texture_diffuse;
+uniform samplerCube skybox;
 uniform float near;
 uniform float far;
 
 void main()
 {
 	// vec3 result = vec3(texture(texture_diffuse, TexCoords));
-	float depthValue = texture(texture_diffuse, TexCoords).r;
-	depthValue = LinearizeDepth(depthValue) / far;
-	color = vec4(vec3(depthValue), 1.0f);
-	// color = vec4(0.5);
+	// float depthValue = texture(skybox, TexCoords).r;
+	// depthValue = LinearizeDepth(depthValue) / far;
+	// color = vec4(vec3(depthValue), 1.0f);
+	
+	color = vec4(vec3(texture(skybox, TexCoords).r), 1.0);
 }
 
 float LinearizeDepth(float depth)

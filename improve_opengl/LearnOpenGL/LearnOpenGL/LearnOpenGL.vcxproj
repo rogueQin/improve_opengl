@@ -132,11 +132,15 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scripts\Camera.cpp" />
     <ClCompile Include="scripts\Config.cpp" />
+    <ClCompile Include="scripts\Cube.cpp" />
     <ClCompile Include="scripts\glad.c" />
     <ClCompile Include="scripts\Mesh.cpp" />
     <ClCompile Include="scripts\Model.cpp" />
+    <ClCompile Include="scripts\RenderBuffer.cpp" />
+    <ClCompile Include="scripts\RenderCube.cpp" />
     <ClCompile Include="scripts\Shader.cpp" />
     <ClCompile Include="scripts\stb_image.cpp" />
+    <ClCompile Include="SkyBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\04_transformation.node" />
@@ -151,6 +155,13 @@
     <None Include="res\shader_431_light_view.vs" />
     <None Include="res\shader_431_shadow_mapping.fs" />
     <None Include="res\shader_431_shadow_mapping.vs" />
+    <None Include="res\shader_432_depth_view.fs" />
+    <None Include="res\shader_432_depth_view.vs" />
+    <None Include="res\shader_432_light_view.fs" />
+    <None Include="res\shader_432_light_view.gs" />
+    <None Include="res\shader_432_light_view.vs" />
+    <None Include="res\shader_432_shadow_mapping.fs" />
+    <None Include="res\shader_432_shadow_mapping.vs" />
     <None Include="res\shader_blend.fs" />
     <None Include="res\shader_blend.vs" />
     <None Include="res\shader_cube.fs" />
@@ -178,9 +189,13 @@
   <ItemGroup>
     <ClInclude Include="scripts\Camera.h" />
     <ClInclude Include="scripts\Config.h" />
+    <ClInclude Include="scripts\Cube.h" />
     <ClInclude Include="scripts\Mesh.h" />
     <ClInclude Include="scripts\Model.h" />
+    <ClInclude Include="scripts\RenderBuffer.h" />
+    <ClInclude Include="scripts\RenderCube.h" />
     <ClInclude Include="scripts\Shader.h" />
+    <ClInclude Include="scripts\SkyBox.h" />
     <ClInclude Include="scripts\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
