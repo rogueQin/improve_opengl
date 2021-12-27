@@ -27,11 +27,11 @@ struct Texture
 class Mesh
 {
 public:
-	// ¶¥µãÊı¾İ
+	// é¡¶ç‚¹æ•°æ®
 	std::vector<Vertex> vertices;
-	// ¶¥µãË÷Òı
+	// é¡¶ç‚¹ç´¢å¼•
 	std::vector<unsigned int> indices;
-	// Í¼Æ¬
+	// å›¾ç‰‡
 	std::vector<Texture> textures;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
