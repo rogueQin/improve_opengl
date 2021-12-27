@@ -10,22 +10,18 @@ layout (std140) uniform Camera
  	mat4 projection;
 };
 
-uniform mat4 transform;
+uniform mat4 model;
 
-uniform mat4 lightSpaceMatrix;
-
-out vec2 TexCoords;
-out vec3 FragPos;
-out vec3 Normal;
-out vec4 FragPosLightSpace;
+out vec2 TexCoords; 
+out vec3 FragPos; 
+out vec3 Normal; 
 
 void main()
 { 
 	vec3 render_move = vec3(-10, -10, 0);
-	Normal = mat3(transpose(inverse(transform))) * aNormal;
+	Normal = mat3(transpose(inverse(model))) * aNormal;
 	TexCoords = aTexCoords;
-	FragPos = vec3(transform * vec4(aPosition, 1.0));
-	FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+	FragPos = vec3(model * vec4(aPosition, 1.0));
 
 	gl_Position = projection * view * vec4(FragPos, 1.0);
 }

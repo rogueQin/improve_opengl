@@ -137,8 +137,10 @@
     <ClCompile Include="scripts\Mesh.cpp" />
     <ClCompile Include="scripts\Model.cpp" />
     <ClCompile Include="scripts\RenderBuffer.cpp" />
+    <ClCompile Include="scripts\RenderCube.cpp" />
     <ClCompile Include="scripts\Shader.cpp" />
     <ClCompile Include="scripts\stb_image.cpp" />
+    <ClCompile Include="SkyBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\04_transformation.node" />
@@ -156,6 +158,7 @@
     <None Include="res\shader_432_depth_view.fs" />
     <None Include="res\shader_432_depth_view.vs" />
     <None Include="res\shader_432_light_view.fs" />
+    <None Include="res\shader_432_light_view.gs" />
     <None Include="res\shader_432_light_view.vs" />
     <None Include="res\shader_432_shadow_mapping.fs" />
     <None Include="res\shader_432_shadow_mapping.vs" />
@@ -190,7 +193,9 @@
     <ClInclude Include="scripts\Mesh.h" />
     <ClInclude Include="scripts\Model.h" />
     <ClInclude Include="scripts\RenderBuffer.h" />
+    <ClInclude Include="scripts\RenderCube.h" />
     <ClInclude Include="scripts\Shader.h" />
+    <ClInclude Include="scripts\SkyBox.h" />
     <ClInclude Include="scripts\stb_image.h" />
   </ItemGroup>
   <ItemGroup>

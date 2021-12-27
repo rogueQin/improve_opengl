@@ -42,6 +42,9 @@ struct PointLight{
 	float constant;
 	float linear;
 	float quadratic;
+
+	float radius;
+	samplerCube shadowTexture;
 };
 
 // 聚光灯
@@ -64,65 +67,86 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
 // 阴影深度计算
-float ShadowCalculation(vec4 fragPosLightSpace);
+float ShadowCalculation(PointLight light, vec3 fragPos);
 
 
 
 in vec3 Normal;
 in vec3 FragPos;
-in vec2 TexCoords;
-in vec4 FragPosLightSpace;
+in vec2 TexCoords; 
+
+
 
 uniform vec3 viewPos;
 
 uniform Material material;
-uniform DirectionLight directionLight;
-uniform PointLight pointLight;
-uniform sampler2D ShadowTexture;
+uniform DirectionLight directionLight; 
 
+#define POINT_LIGHT_COUNT 3
+uniform PointLight pointLights[POINT_LIGHT_COUNT];
 
 
 void main()
-{	
-	// vec3 result = vec3(texture(material.texture_diffuse1, TexCoords));
-	// vec4 texColor = texture(material.texture_diffuse1, TexCoords);
-	// color = vec4(result, 1.0f);
+{
 	vec3 result = vec3(0.0f);
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 normal = normalize(Normal);
 	
 	// result += calcDirectionLight(directionLight, normal, viewDir);
-	result += calcPointLight(pointLight, normal, viewDir, FragPos);
-	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
-	// {
-	 	// result = calcPointLight(pointLight, normal, viewDir, FragPos);
-	// }
+	// result += calcPointLight(pointLight, normal, viewDir, FragPos);
+
+	for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
+	{
+	 	result += calcPointLight(pointLights[i], normal, viewDir, FragPos);
+	}
 	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
 
 	color = vec4(result, 1.0f);
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(PointLight light, vec3 fragPos)
 {
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-	projCoords = projCoords * 0.5 + 0.5;
+	vec3 fragToLight = fragPos - light.position;
 
-	vec2 texelSize = 1.0 / textureSize(ShadowTexture, 0);
+	float currentDepth = length(fragToLight);
+	// float shadowValue = currentDepth > closestDepth ? 1.0 : 0.0;
 
-	float shadowValue = 0.0;
-	float currentDepth = projCoords.z;
-	float closestDepth = 0.0;
-	for(int i = -1; i <= 1; i++)
+	float shadow = 0.0;
+	float samples = 4.0;
+	float offset = 0.1;
+
+	for(float x = -offset; x < offset; x += offset / (samples * 0.5))
 	{
-		for(int j = -1; j <= 1; j++)
+		for(float y = -offset; y < offset; y += offset / (samples * 0.5))
 		{
-			float closestDepth = texture(ShadowTexture, projCoords.xy + vec2(i, j) * texelSize).r;
-			shadowValue += currentDepth > closestDepth ? 1.0 : 0.0;
+			for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+			{
+				float closestDepth = texture(light.shadowTexture, fragToLight + vec3(x,y,z)).r;
+				closestDepth *= light.radius;
+				shadow += currentDepth > closestDepth ? 1.0 : 0.0;
+			}
 		}
 	}
-	shadowValue /= 9;
 
-	return shadowValue;
+	shadow /= (samples * samples * samples);
+
+	// vec2 texelSize = 1.0 / textureSize(ShadowTexture, 0);
+
+	// float shadowValue = 0.0;
+	// float currentDepth = length(fragToLight);
+	// float closestDepth = 0.0;
+	// for(int i = -1; i <= 1; i++)
+	// {
+	// 	for(int j = -1; j <= 1; j++)
+	// 	{
+	// 		closestDepth = texture(ShadowTexture, fragToLight).r;
+	// 		closestDepth *= far_plane;
+	// 		shadowValue += currentDepth > closestDepth ? 1.0 : 0.0;
+	// 	}
+	// }
+	// shadowValue /= 9;
+
+	return shadow;
 }
 
 // 平行光
@@ -179,7 +203,7 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 	vec3 specular = light.specular * (spec * specularTexture);//  * attenuation; 
 	// vec3 specular = vec3(0.0f);
 
-	float shadow = ShadowCalculation(FragPosLightSpace);
+	float shadow = ShadowCalculation(light, fragPos);
 
 	return ambient + (1.0 - shadow) * (diffuse + specular);
 }

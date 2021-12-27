@@ -91,7 +91,7 @@ void Cube::renderCube(Shader* shader)
 	trans = glm::rotate(trans, glm::radians(this->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	trans = glm::rotate(trans, glm::radians(this->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	trans = glm::translate(trans, this->position);
-	shader->setMatrix4f("transform", trans);
+	shader->setMatrix4f("model", trans);
 
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
