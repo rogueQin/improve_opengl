@@ -127,6 +127,16 @@ GLfloat vertices_panel [] = {
 	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
 };
 
+GLfloat vertices_normal_map_panel[] = {
+	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+
+	 1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+};
+
 GLfloat vertices_skybox[] = {
 		-1.0f, -1.0f, -1.0f,
 		 1.0f,  1.0f, -1.0f,
@@ -234,17 +244,6 @@ unsigned int indices[] = {
 
 Camera * camera_main;
 
-Cube * cube_ground;
-Cube * cube_box_1;
-Cube * cube_box_2;
-Cube * cube_box_3;
-
-Cube * cube_sky;
-
-RenderCube * cubeBuffer[3];
-
-SkyBox * skybox;
-
 void renderScene(Shader * render_shader);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -289,19 +288,11 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
-
-	cube_ground = new Cube(vertices_ground, sizeof(vertices_ground), glm::vec3(0.0f, -0.1f, 0.0f), glm::vec3(0.0f), glm::vec3(30.0f, 0.2f, 30.0f));
-	cube_box_1 = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(-2.0f, 0.5f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	cube_box_2 = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(2.0f, 0.5f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	cube_box_3 = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(0.0f, 0.5f, -2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	cube_sky = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(20.0f));
-
-	skybox = new SkyBox(vertices_skybox, sizeof(vertices_skybox));
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 8.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	//glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
@@ -309,22 +300,17 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
-	for (int i = 0; i < 3; i++)
-	{
-		cubeBuffer[i] = new RenderCube(Config::DepthMap_width, Config::DepthMap_height);
-	}
 
-	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wood.png");
+	GLuint brickwall = loadTexture("../LearnOpenGL/res/res_440/brickwall.jpg");
+	GLuint brickwall_normal = loadTexture("../LearnOpenGL/res/res_440/brickwall_normal.jpg");
 
-	Shader * shader_light_view = new Shader("../LearnOpenGL/res/shader_432_light_view.vs", "../LearnOpenGL/res/shader_432_light_view.fs", "../LearnOpenGL/res/shader_432_light_view.gs");
-	Shader * shader_depth_view = new Shader("../LearnOpenGL/res/shader_432_depth_view.vs", "../LearnOpenGL/res/shader_432_depth_view.fs");
-	Shader * shader_shadow_mapping = new Shader("../LearnOpenGL/res/shader_432_shadow_mapping.vs", "../LearnOpenGL/res/shader_432_shadow_mapping.fs");
+	Shader * shader_normal_mapping = new Shader("../LearnOpenGL/res/res_440/shader_440_normal_mapping.vs", "../LearnOpenGL/res/res_440/shader_440_normal_mapping.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
 	glm::mat4 projection = camera_main->getProjection();
 
-	shader_shadow_mapping->setBlock("Camera", 0);
+	shader_normal_mapping->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -336,6 +322,27 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
+	GLuint VBO_Normal_Panel;
+	glGenBuffers(1, &VBO_Normal_Panel);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_Normal_Panel);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_normal_map_panel), vertices_normal_map_panel, GL_STATIC_DRAW);
+
+	GLuint VAO_Normal_Panel;
+	glGenVertexArrays(1, &VAO_Normal_Panel);
+	glBindVertexArray(VAO_Normal_Panel);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(5 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -344,118 +351,50 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		glm::vec3 lightPos = glm::vec3(0.0f, 3.0f, 0.0f);
 		glm::mat4 trans = glm::mat4(1.0f);
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		/***/
-		// 生成深度缓冲
-		glCullFace(GL_FRONT);
-		shader_light_view->use();
-		
-		for (int i = 0;i < 3; i++)
-		{
-			cubeBuffer[i]->use(shader_light_view, light_pos_list[i]);
-			renderScene(shader_light_view);
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		
-
-		/**
-		// 深度天空盒
-		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
-		glDepthFunc(GL_LEQUAL);
-		//glCullFace(GL_FRONT);
-		
 		camera_main->update();
 		view = camera_main->getView();
 		projection = camera_main->getProjection();
 
-		shader_depth_view->use();
-		shader_depth_view->setMatrix4f("view", glm::mat4(glm::mat3(view)));
-		shader_depth_view->setMatrix4f("projection", projection);
-		shader_depth_view->setFloat("near", camera_main->getNear());
-		shader_depth_view->setFloat("far", camera_main->getFar());
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeBuffer->GetRenderCube());
-		shader_depth_view->setInt("skybox", 1); 
-
-		skybox->renderCube();
-		*/
-
-		/***/
-		// 处理渲染指令
-		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glCullFace(GL_BACK);
-
-		camera_main->update();
-		view = camera_main->getView();
-		projection = camera_main->getProjection();
-		
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-		// glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(render_distance));
 
-		shader_shadow_mapping->use();
-		// material
-		shader_shadow_mapping->setFloat("material.shininess", 32.0f);
-		// camera
-		shader_shadow_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
+
+		trans = glm::scale(trans, glm::vec3(3.0, 3.0, 1.0));
+		//trans = glm::rotate(trans, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+
+		shader_normal_mapping->use();
+		shader_normal_mapping->setMatrix4f("model", trans);
+		shader_normal_mapping->setInt("material.texture_diffuse1", 0);
+		shader_normal_mapping->setInt("material.texture_normal1", 1);
+		shader_normal_mapping->setFloat("material.shininess", 32.0f);
+
+		shader_normal_mapping->setVec3f("directionLight.direction", glm::vec3(0.0f, 0.0f, -1.0f));
+		shader_normal_mapping->setVec3f("directionLight.ambient", glm::vec3(0.5f));
+		shader_normal_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.3f));
+		shader_normal_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
+
+		shader_normal_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
 		
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, floor_texture);
-		shader_shadow_mapping->setInt("material.texture_diffuse1", 0);
+		glBindTexture(GL_TEXTURE_2D, brickwall);
 
-		for (int i = 0; i < 3; i++)
-		{
-			// point_light
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].position", light_pos_list[i]);
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].ambient", glm::vec3(0.2f));
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].diffuse", glm::vec3(0.5f));
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].specular", glm::vec3(1.0f));
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].constant", 0.6f);
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].radius", 25.0f);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, brickwall_normal);
 
-			// shadow mapping
-			glActiveTexture(GL_TEXTURE1 + i);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeBuffer[i]->GetRenderCube());
-			shader_shadow_mapping->setInt("pointLights[" + std::to_string(i) + "].shadowTexture", i + 1);
-		}
-
-
-		//// direction_light
-		//shader_shadow_mapping->setVec3f("directionLight.direction", glm::vec3(-1.0f, -1.0f, 1.0f));
-		//shader_shadow_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		//shader_shadow_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		//shader_shadow_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
-		
-		renderScene(shader_shadow_mapping);
-		
-
+		glBindVertexArray(VAO_Normal_Panel);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
 
-	//for (int i = 0; i <6; i++)
-	//{
-	//	delete buffer[i];
-	//}
-
-	//delete cubeBuffer;
-	delete cube_ground;
-	delete cube_box_1;
-	delete cube_box_2;
-	delete cube_box_3;
+	glDeleteBuffers(1, &VBO_Normal_Panel);
+	glDeleteBuffers(1, &VAO_Normal_Panel);
 
 	glfwTerminate();
 	 
@@ -464,10 +403,10 @@ int main()
 
 void renderScene(Shader * render_shader) 
 {
-	cube_ground->renderCube(render_shader);
-	cube_box_1->renderCube(render_shader);
-	cube_box_2->renderCube(render_shader);
-	cube_box_3->renderCube(render_shader);
+	//cube_ground->renderCube(render_shader);
+	//cube_box_1->renderCube(render_shader);
+	//cube_box_2->renderCube(render_shader);
+	//cube_box_3->renderCube(render_shader);
 	//cube_sky->renderCube(render_shader);
 }
 
