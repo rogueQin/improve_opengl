@@ -40,8 +40,6 @@ struct DirectionLight{
 
 // 点光源
 struct PointLight{
-	vec3 position;
-
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
@@ -66,38 +64,37 @@ struct SpotLight{
 // 平行光
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir);
 // 点光源
-vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
+vec3 calcPointLight(PointLight light, vec3 normal); //, vec3 viewDir, vec3 fragPos);
 // 聚光灯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos);
 
 
-in vec3 Normal;
-in vec3 FragPos;
-in vec2 TexCoords; 
+in VS_OUT{
+	vec3 FragPos;
+	vec2 TexCoords;
+	vec3 TangentLightPos;
+	vec3 TangentViewPos;
+	vec3 TangentFragPos;
+} fs_in;
 
-uniform vec3 viewPos;
 
 uniform Material material;
 uniform DirectionLight directionLight; 
+uniform PointLight pointLight;
 
-#define POINT_LIGHT_COUNT 3
-uniform PointLight pointLights[POINT_LIGHT_COUNT];
+// #define POINT_LIGHT_COUNT 3
+// uniform PointLight pointLights[POINT_LIGHT_COUNT];
 
 
 void main()
 {
 	vec3 result = vec3(0.0f);
-	vec3 viewDir = normalize(viewPos - FragPos);
-	vec3 normal = normalize(Normal);
+	vec3 normal = texture(material.texture_normal1, fs_in.TexCoords).rgb;
+	normal = normalize(normal * 2.0 - 1.0);
+	result += calcPointLight(pointLight, normal);
 	
-	result += calcDirectionLight(directionLight, normal, viewDir);
-	// result += calcPointLight(pointLight, normal, viewDir, FragPos);
-
-	// for(int i = 0; i < POINT_LIGHT_COUNT; i ++)
-	// {
-	//  	result += calcPointLight(pointLights[i], normal, viewDir, FragPos);
-	// }
-	// result += calcSpotLight(spotLight, normal, viewDir, FragPos);
+	// vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+	// result += lightDir;
 
 	color = vec4(result, 1.0f);
 }
@@ -106,8 +103,8 @@ void main()
 vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 {
 	// 贴图
-	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, TexCoords));
-	vec3 specularTexture = vec3(texture(material.texture_diffuse1, TexCoords));
+	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, fs_in.TexCoords));
+	vec3 specularTexture = vec3(texture(material.texture_diffuse1, fs_in.TexCoords));
 	// ambient
 	vec3 ambient = light.ambient * diffuseTexture;
 	
@@ -129,20 +126,19 @@ vec3 calcDirectionLight(DirectionLight light, vec3 normal, vec3 viewDir)
 }
 
 // 点光源
-vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
+vec3 calcPointLight(PointLight light, vec3 normal) // , vec3 viewDir, vec3 fragPos)
 {
 	// 贴图
-	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, TexCoords));
-	vec3 specularTexture = vec3(texture(material.texture_diffuse1, TexCoords));
-	// vec3 diffuseTexture = vec3(1.0f);
-	// vec3 specularTexture = vec3(1.0f);
+	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, fs_in.TexCoords));
+	vec3 specularTexture = vec3(1.0f);
 
-	float distance = length(light.position - fragPos);
+	float distance = length(fs_in.TangentLightPos - fs_in.TangentFragPos);
 	float attenuation = 1.0f / (light.constant + light.linear * distance + light.quadratic * distance * distance);
 	// ambient
 	vec3 ambient = light.ambient * diffuseTexture * attenuation;
 	
-	vec3 lightDir = normalize(light.position - fragPos);
+	vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+	vec3 viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
 	vec3 halfwayDir = normalize(viewDir + lightDir);
 
 	// diffuse
@@ -152,22 +148,17 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 	// specular
 	float spec = 0.0f;
 	spec = pow(max(dot(normal, -halfwayDir), 0.0), material.shininess);
-
 	vec3 specular = light.specular * (spec * specularTexture);//  * attenuation; 
-	// vec3 specular = vec3(0.0f);
 
-	// float shadow = ShadowCalculation(light, fragPos);
-	float shadow = 0.0;
-
-	return ambient + (1.0 - shadow) * (diffuse + specular);
+	return ambient + diffuse + specular;
 }
 
 // 聚光灯
 vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos)
 {
 	// 贴图
-	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, TexCoords));
-	vec3 specularTexture = vec3(texture(material.texture_specular1, TexCoords));
+	vec3 diffuseTexture = vec3(texture(material.texture_diffuse1, fs_in.TexCoords));
+	vec3 specularTexture = vec3(texture(material.texture_specular1, fs_in.TexCoords));
 
 	// ambient
 	vec3 result = light.ambient * diffuseTexture;
