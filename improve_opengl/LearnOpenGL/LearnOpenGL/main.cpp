@@ -289,7 +289,7 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 8.0f, 8.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -366,6 +366,8 @@ int main()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	Model * nanosuit = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	//Model * Railgun = new Model("../LearnOpenGL/res/res_440/cave.gltf");
 	
 
 	while (!glfwWindowShouldClose(window))
@@ -380,8 +382,8 @@ int main()
 		glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::mat4 trans = glm::mat4(1.0f);
 		
-		lightPos.x = 1.0 * glm::sin((float)glfwGetTime() * glm::radians(50.0f));
-		lightPos.z = 1.0 * glm::cos((float)glfwGetTime() * glm::radians(50.0f));
+		lightPos.x = 5.0 * glm::sin((float)glfwGetTime() * glm::radians(50.0f));
+		lightPos.z = 5.0 * glm::cos((float)glfwGetTime() * glm::radians(50.0f));
 
 		camera_main->update();
 		view = camera_main->getView();
@@ -391,31 +393,23 @@ int main()
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
 		trans = glm::mat4(1.0f);
-		//trans = glm::translate(trans, glm::vec3(0.0, -5.0f, 0.0));
+		trans = glm::translate(trans, glm::vec3(0.0, -5.0f, 0.0));
 		trans = glm::rotate(trans, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-		trans = glm::scale(trans, glm::vec3(3.0, 3.0, 1.0));
+		trans = glm::scale(trans, glm::vec3(10.0, 10.0, 1.0));
 
 		shader_normal_mapping->use();
 		shader_normal_mapping->setMatrix4f("model", trans);
 		shader_normal_mapping->setInt("material.texture_diffuse1", 0);
+		shader_normal_mapping->setInt("material.texture_specular1", 0);
 		shader_normal_mapping->setInt("material.texture_normal1", 1);
 		shader_normal_mapping->setFloat("material.shininess", 32.0f);
-
-		//shader_normal_mapping->setVec3f("directionLight.direction", glm::vec3(0.0f, 0.0f, -1.0f));
-		//shader_normal_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		//shader_normal_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		//shader_normal_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
 
 		shader_normal_mapping->setVec3f("lightPos", lightPos);
 		shader_normal_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
 
-		shader_normal_mapping->setVec3f("pointLight.ambient", glm::vec3(0.4f));
-		shader_normal_mapping->setVec3f("pointLight.diffuse", glm::vec3(0.7f));
-		shader_normal_mapping->setVec3f("pointLight.specular", glm::vec3(1.0f));
-
-		shader_normal_mapping->setFloat("pointLight.constant", 0.5f);
-		shader_normal_mapping->setFloat("pointLight.linear", 0.09f);
-		shader_normal_mapping->setFloat("pointLight.quadratic", 0.032f);
+		shader_normal_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_normal_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_normal_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, brickwall);
@@ -426,6 +420,21 @@ int main()
 		glBindVertexArray(VAO_Normal_Panel);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.0, -5.0f, 0.0));
+		//trans = glm::scale(trans, glm::vec3(0.5f));
+		shader_normal_mapping->setMatrix4f("model", trans);
+		shader_normal_mapping->setFloat("material.shininess", 32.0f);
+
+		shader_normal_mapping->setVec3f("lightPos", lightPos);
+		shader_normal_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
+
+		shader_normal_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_normal_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_normal_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
+
+		nanosuit->draw(shader_normal_mapping);
+		
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
