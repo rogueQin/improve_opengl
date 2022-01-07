@@ -24,8 +24,8 @@ public:
 
 	void setInstanceArray(GLuint buffer);
 
-	void drawInstance(Shader &shader, int count);
-	void draw(Shader &shader);
+	void drawInstance(Shader *shader, int count);
+	void draw(Shader *shader);
 
 private:
 	std::vector<Mesh> meshes;

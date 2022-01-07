@@ -25,6 +25,9 @@
     <Filter Include="资源文件\nanosuit">
       <UniqueIdentifier>{008de016-ed15-4ca3-8e03-738556270453}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\res_440">
+      <UniqueIdentifier>{3b82c922-740e-4dc2-bb05-b7aa381379cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -191,6 +194,12 @@
     <None Include="res\shader_432_light_view.gs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\res_440\shader_440_normal_mapping.fs">
+      <Filter>资源文件\res_440</Filter>
+    </None>
+    <None Include="res\res_440\shader_440_normal_mapping.vs">
+      <Filter>资源文件\res_440</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripts\Shader.h">
@@ -263,6 +272,12 @@
     </Image>
     <Image Include="res\skybox\top.jpg">
       <Filter>资源文件\skybox</Filter>
+    </Image>
+    <Image Include="res\res_440\brickwall.jpg">
+      <Filter>资源文件\res_440</Filter>
+    </Image>
+    <Image Include="res\res_440\brickwall_normal.jpg">
+      <Filter>资源文件\res_440</Filter>
     </Image>
   </ItemGroup>
 </Project>

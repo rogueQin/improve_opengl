@@ -14,7 +14,7 @@ Model::~Model()
 void Model::loadModel(std::string path) 
 {
 	Assimp::Importer importer;
-	const aiScene * scene = importer.ReadFile(path, aiProcess_Triangulate| aiProcess_GenSmoothNormals | aiProcess_FlipUVs|aiProcess_CalcTangentSpace);
+	const aiScene * scene = importer.ReadFile(path, aiProcess_Triangulate| aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -108,11 +108,11 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 		std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-		std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_height");
+		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
 	return Mesh(vertices, indices, textures);
@@ -150,7 +150,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial * material, aiTextur
 	return textures;
 }
 
-void Model::drawInstance(Shader &shader, int count)
+void Model::drawInstance(Shader *shader, int count)
 {
 	for (unsigned int i = 0; i < meshes.size(); i++) 
 	{
@@ -158,7 +158,7 @@ void Model::drawInstance(Shader &shader, int count)
 	}
 }
 
-void Model::draw(Shader &shader)
+void Model::draw(Shader *shader)
 {
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
