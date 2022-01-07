@@ -127,6 +127,16 @@ GLfloat vertices_panel [] = {
 	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
 };
 
+GLfloat vertices_normal_map_panel[] = {
+	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+
+	 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
+};
+
 GLfloat vertices_skybox[] = {
 		-1.0f, -1.0f, -1.0f,
 		 1.0f,  1.0f, -1.0f,
@@ -234,17 +244,6 @@ unsigned int indices[] = {
 
 Camera * camera_main;
 
-Cube * cube_ground;
-Cube * cube_box_1;
-Cube * cube_box_2;
-Cube * cube_box_3;
-
-Cube * cube_sky;
-
-RenderCube * cubeBuffer[3];
-
-SkyBox * skybox;
-
 void renderScene(Shader * render_shader);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -259,6 +258,7 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
 unsigned int loadTexture(std::string fileName);
 unsigned int loadCubeMap(std::vector<std::string> faces);
+int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output);
 
 int main() 
 {
@@ -289,19 +289,11 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
-
-	cube_ground = new Cube(vertices_ground, sizeof(vertices_ground), glm::vec3(0.0f, -0.1f, 0.0f), glm::vec3(0.0f), glm::vec3(30.0f, 0.2f, 30.0f));
-	cube_box_1 = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(-2.0f, 0.5f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	cube_box_2 = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(2.0f, 0.5f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	cube_box_3 = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(0.0f, 0.5f, -2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	cube_sky = new Cube(vertices_cube, sizeof(vertices_cube), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(20.0f));
-
-	skybox = new SkyBox(vertices_skybox, sizeof(vertices_skybox));
+	camera_main = new Camera(glm::vec3(0.0f, 8.0f, 8.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	//glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
@@ -309,22 +301,17 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
-	for (int i = 0; i < 3; i++)
-	{
-		cubeBuffer[i] = new RenderCube(Config::DepthMap_width, Config::DepthMap_height);
-	}
 
-	unsigned int floor_texture = loadTexture("../LearnOpenGL/res/wood.png");
+	GLuint brickwall = loadTexture("../LearnOpenGL/res/res_440/brickwall.jpg");
+	GLuint brickwall_normal = loadTexture("../LearnOpenGL/res/res_440/brickwall_normal.jpg");
 
-	Shader * shader_light_view = new Shader("../LearnOpenGL/res/shader_432_light_view.vs", "../LearnOpenGL/res/shader_432_light_view.fs", "../LearnOpenGL/res/shader_432_light_view.gs");
-	Shader * shader_depth_view = new Shader("../LearnOpenGL/res/shader_432_depth_view.vs", "../LearnOpenGL/res/shader_432_depth_view.fs");
-	Shader * shader_shadow_mapping = new Shader("../LearnOpenGL/res/shader_432_shadow_mapping.vs", "../LearnOpenGL/res/shader_432_shadow_mapping.fs");
+	Shader * shader_normal_mapping = new Shader("../LearnOpenGL/res/res_440/shader_440_normal_mapping.vs", "../LearnOpenGL/res/res_440/shader_440_normal_mapping.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
 	glm::mat4 projection = camera_main->getProjection();
 
-	shader_shadow_mapping->setBlock("Camera", 0);
+	shader_normal_mapping->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -337,6 +324,52 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
 
+	// panel数据
+	GLfloat *Panel_triangle_1 = new GLfloat[42]();
+	GLfloat *Panel_triangle_2 = new GLfloat[42]();
+	int triangle_length_1, triangle_length_2;
+	triangle_length_1 = renderPanel(&vertices_normal_map_panel[0], Panel_triangle_1);
+	triangle_length_2 = renderPanel(&vertices_normal_map_panel[24], Panel_triangle_2);
+	
+	GLfloat panel_triangle[84];
+	for (int i = 0; i < 42; i++)
+	{
+		panel_triangle[i] = Panel_triangle_1[i];
+		panel_triangle[42 + i] = Panel_triangle_2[i];
+	}
+
+	GLuint VBO_Normal_Panel;
+	glGenBuffers(1, &VBO_Normal_Panel);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_Normal_Panel);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(panel_triangle), panel_triangle, GL_STATIC_DRAW);
+
+	GLuint VAO_Normal_Panel;
+	glGenVertexArrays(1, &VAO_Normal_Panel);
+	glBindVertexArray(VAO_Normal_Panel);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(3);
+
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(11 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(4);
+	glBindVertexArray(0);
+
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	Model * nanosuit = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	//Model * Railgun = new Model("../LearnOpenGL/res/res_440/cave.gltf");
+	
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 检查并调用事件
@@ -344,56 +377,13 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
-		glm::vec3 lightPos = glm::vec3(0.0f, 3.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::mat4 trans = glm::mat4(1.0f);
-
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		/***/
-		// 生成深度缓冲
-		glCullFace(GL_FRONT);
-		shader_light_view->use();
 		
-		for (int i = 0;i < 3; i++)
-		{
-			cubeBuffer[i]->use(shader_light_view, light_pos_list[i]);
-			renderScene(shader_light_view);
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		
-
-		/**
-		// 深度天空盒
-		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
-		glDepthFunc(GL_LEQUAL);
-		//glCullFace(GL_FRONT);
-		
-		camera_main->update();
-		view = camera_main->getView();
-		projection = camera_main->getProjection();
-
-		shader_depth_view->use();
-		shader_depth_view->setMatrix4f("view", glm::mat4(glm::mat3(view)));
-		shader_depth_view->setMatrix4f("projection", projection);
-		shader_depth_view->setFloat("near", camera_main->getNear());
-		shader_depth_view->setFloat("far", camera_main->getFar());
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeBuffer->GetRenderCube());
-		shader_depth_view->setInt("skybox", 1); 
-
-		skybox->renderCube();
-		*/
-
-		/***/
-		// 处理渲染指令
-		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glCullFace(GL_BACK);
+		lightPos.x = 5.0 * glm::sin((float)glfwGetTime() * glm::radians(50.0f));
+		lightPos.z = 5.0 * glm::cos((float)glfwGetTime() * glm::radians(50.0f));
 
 		camera_main->update();
 		view = camera_main->getView();
@@ -401,73 +391,149 @@ int main()
 		
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-		// glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(render_distance));
 
-		shader_shadow_mapping->use();
-		// material
-		shader_shadow_mapping->setFloat("material.shininess", 32.0f);
-		// camera
-		shader_shadow_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.0, -5.0f, 0.0));
+		trans = glm::rotate(trans, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+		trans = glm::scale(trans, glm::vec3(10.0, 10.0, 1.0));
+
+		shader_normal_mapping->use();
+		shader_normal_mapping->setMatrix4f("model", trans);
+		shader_normal_mapping->setInt("material.texture_diffuse1", 0);
+		shader_normal_mapping->setInt("material.texture_specular1", 0);
+		shader_normal_mapping->setInt("material.texture_normal1", 1);
+		shader_normal_mapping->setFloat("material.shininess", 32.0f);
+
+		shader_normal_mapping->setVec3f("lightPos", lightPos);
+		shader_normal_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
+
+		shader_normal_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_normal_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_normal_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
 		
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, floor_texture);
-		shader_shadow_mapping->setInt("material.texture_diffuse1", 0);
+		glBindTexture(GL_TEXTURE_2D, brickwall);
 
-		for (int i = 0; i < 3; i++)
-		{
-			// point_light
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].position", light_pos_list[i]);
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].ambient", glm::vec3(0.2f));
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].diffuse", glm::vec3(0.5f));
-			shader_shadow_mapping->setVec3f("pointLights[" + std::to_string(i) + "].specular", glm::vec3(1.0f));
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].constant", 0.6f);
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
-			shader_shadow_mapping->setFloat("pointLights[" + std::to_string(i) + "].radius", 25.0f);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, brickwall_normal);
 
-			// shadow mapping
-			glActiveTexture(GL_TEXTURE1 + i);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeBuffer[i]->GetRenderCube());
-			shader_shadow_mapping->setInt("pointLights[" + std::to_string(i) + "].shadowTexture", i + 1);
-		}
+		glBindVertexArray(VAO_Normal_Panel);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.0, -5.0f, 0.0));
+		//trans = glm::scale(trans, glm::vec3(0.5f));
+		shader_normal_mapping->setMatrix4f("model", trans);
+		shader_normal_mapping->setFloat("material.shininess", 32.0f);
 
-		//// direction_light
-		//shader_shadow_mapping->setVec3f("directionLight.direction", glm::vec3(-1.0f, -1.0f, 1.0f));
-		//shader_shadow_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		//shader_shadow_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		//shader_shadow_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
+		shader_normal_mapping->setVec3f("lightPos", lightPos);
+		shader_normal_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
+
+		shader_normal_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_normal_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_normal_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
+
+		nanosuit->draw(shader_normal_mapping);
 		
-		renderScene(shader_shadow_mapping);
-		
-
-
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
 
-	//for (int i = 0; i <6; i++)
-	//{
-	//	delete buffer[i];
-	//}
-
-	//delete cubeBuffer;
-	delete cube_ground;
-	delete cube_box_1;
-	delete cube_box_2;
-	delete cube_box_3;
+	glDeleteBuffers(1, &VBO_Normal_Panel);
+	glDeleteBuffers(1, &VAO_Normal_Panel);
 
 	glfwTerminate();
 	 
 	return 0;
 }
 
+int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output)
+{
+	glm::vec3 pos1 = glm::vec3(vertex_input[0], vertex_input[1], vertex_input[2]);
+	glm::vec3 pos2 = glm::vec3(vertex_input[8], vertex_input[9], vertex_input[10]);
+	glm::vec3 pos3 = glm::vec3(vertex_input[16], vertex_input[17], vertex_input[18]);
+		
+	glm::vec2 uv1 = glm::vec2(vertex_input[6], vertex_input[7]);
+	glm::vec2 uv2 = glm::vec2(vertex_input[14], vertex_input[15]);
+	glm::vec2 uv3 = glm::vec2(vertex_input[22], vertex_input[23]);
+
+	glm::vec3 norm1 = glm::vec3(vertex_input[3], vertex_input[4], vertex_input[5]);
+	glm::vec3 norm2 = glm::vec3(vertex_input[11], vertex_input[12], vertex_input[13]);
+	glm::vec3 norm3 = glm::vec3(vertex_input[19], vertex_input[20], vertex_input[21]);
+
+	glm::vec3 edge1 = pos2 - pos1;
+	glm::vec3 edge2 = pos3 - pos1;
+
+	glm::vec2 deltaUV1 = uv2 - uv1;
+	glm::vec2 deltaUV2 = uv3 - uv1;
+	/**
+	glm::mat2x2 uv_matrix = glm::mat2x2(1.0f);
+	uv_matrix[0][0] = deltaUV1.x;
+	uv_matrix[0][1] = deltaUV1.y;
+	uv_matrix[1][0] = deltaUV2.x;
+	uv_matrix[1][1] = deltaUV2.y;
+
+	uv_matrix = glm::inverse(uv_matrix);
+
+	glm::mat2x3 edge_matrix = glm::mat2x3(1.0);
+	edge_matrix[0][0] = edge1.x;
+	edge_matrix[0][1] = edge1.y;
+	edge_matrix[0][2] = edge1.z;
+	edge_matrix[1][0] = edge2.x;
+	edge_matrix[1][1] = edge2.y;
+	edge_matrix[1][2] = edge2.z;
+
+	glm::mat2x3 tb_matrix = edge_matrix * uv_matrix;
+
+	glm::vec3 tangent = glm::normalize(glm::vec3(tb_matrix[0][0], tb_matrix[0][1], tb_matrix[0][2]));
+	glm::vec3 bitangent = glm::normalize(glm::vec3(tb_matrix[1][0], tb_matrix[1][1], tb_matrix[1][2]));
+	*/
+	GLfloat f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+	glm::vec3 tangent, bitangent;
+
+	tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+	tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+	tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+	tangent = glm::normalize(tangent);
+
+	bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+	bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+	bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+	bitangent = glm::normalize(bitangent);
+
+	GLfloat * vertex_array = new GLfloat[42]{
+		pos1.x, pos1.y, pos1.z, norm1.x, norm1.y, norm1.z, uv1.x, uv1.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z,
+		pos2.x, pos2.y, pos2.z, norm2.x, norm2.y, norm2.z, uv2.x, uv2.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z,
+		pos3.x, pos3.y, pos3.z, norm3.x, norm3.y, norm3.z, uv3.x, uv3.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z
+	};
+	for (int i = 0; i < 42; i++)
+	{
+		if (vertex_array[i] > -0.001f && vertex_array[i] < 0.001f)
+		{
+			vertex_array[i] = 0.0f;
+		}
+		if (vertex_array[i] < 1.001f && vertex_array[i] > 0.999f)
+		{
+			vertex_array[i] = 1.0f;
+		}
+		if (vertex_array[i] > -1.001f && vertex_array[i] < -0.999f)
+		{
+			vertex_array[i] = -1.0f;
+		}
+
+		vertex_output[i] = vertex_array[i];
+	}
+
+	return 42;
+}
+
 void renderScene(Shader * render_shader) 
 {
-	cube_ground->renderCube(render_shader);
-	cube_box_1->renderCube(render_shader);
-	cube_box_2->renderCube(render_shader);
-	cube_box_3->renderCube(render_shader);
+	//cube_ground->renderCube(render_shader);
+	//cube_box_1->renderCube(render_shader);
+	//cube_box_2->renderCube(render_shader);
+	//cube_box_3->renderCube(render_shader);
 	//cube_sky->renderCube(render_shader);
 }
 

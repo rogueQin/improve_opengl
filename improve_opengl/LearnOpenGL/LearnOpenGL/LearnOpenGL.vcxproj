@@ -144,6 +144,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\04_transformation.node" />
+    <None Include="res\res_440\shader_440_normal_mapping.fs" />
+    <None Include="res\res_440\shader_440_normal_mapping.vs" />
     <None Include="res\shader.fs" />
     <None Include="res\shader.gs" />
     <None Include="res\shader.vs" />
@@ -206,6 +208,8 @@
     <Image Include="res\container2.png" />
     <Image Include="res\container2_specular.png" />
     <Image Include="res\grass.png" />
+    <Image Include="res\res_440\brickwall.jpg" />
+    <Image Include="res\res_440\brickwall_normal.jpg" />
     <Image Include="res\skybox\back.jpg" />
     <Image Include="res\skybox\bottom.jpg" />
     <Image Include="res\skybox\front.jpg" />
