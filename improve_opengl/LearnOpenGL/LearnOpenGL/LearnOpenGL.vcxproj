@@ -146,6 +146,8 @@
     <None Include="res\04_transformation.node" />
     <None Include="res\res_440\shader_440_normal_mapping.fs" />
     <None Include="res\res_440\shader_440_normal_mapping.vs" />
+    <None Include="res\res_450\shader_450_paralax_mapping.fs" />
+    <None Include="res\res_450\shader_450_paralax_mapping.vs" />
     <None Include="res\shader.fs" />
     <None Include="res\shader.gs" />
     <None Include="res\shader.vs" />

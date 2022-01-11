@@ -28,6 +28,9 @@
     <Filter Include="资源文件\res_440">
       <UniqueIdentifier>{3b82c922-740e-4dc2-bb05-b7aa381379cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\res_450">
+      <UniqueIdentifier>{37837945-0511-4335-b240-84e352f55c8a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -199,6 +202,12 @@
     </None>
     <None Include="res\res_440\shader_440_normal_mapping.vs">
       <Filter>资源文件\res_440</Filter>
+    </None>
+    <None Include="res\res_450\shader_450_paralax_mapping.fs">
+      <Filter>资源文件\res_450</Filter>
+    </None>
+    <None Include="res\res_450\shader_450_paralax_mapping.vs">
+      <Filter>资源文件\res_450</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
