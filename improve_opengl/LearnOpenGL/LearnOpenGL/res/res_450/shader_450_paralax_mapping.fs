@@ -132,15 +132,26 @@ vec2 calcDiplamence()
 
 	vec2 currentTexCoords = fs_in.TexCoords;
 	float currentDepthMapValue = texture(material.texture_diplamence1, currentTexCoords).r;
+	
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+	float prevDepth = texture(material.texture_diplamence1, prevTexCoords).r - currentLayerDepth + layerDepth; 
+	float afterDepth = currentDepthMapValue - currentLayerDepth;
 
 	while(currentLayerDepth < currentDepthMapValue)
 	{
 		currentTexCoords -= deltaTexCoords;
 		currentDepthMapValue = texture(material.texture_diplamence1, currentTexCoords).r;
 		currentLayerDepth += layerDepth;
+
+		prevTexCoords = currentTexCoords + deltaTexCoords;
+		prevDepth = texture(material.texture_diplamence1, prevTexCoords).r - currentLayerDepth + layerDepth;
+		afterDepth = currentDepthMapValue - currentLayerDepth;
 	}
 
-	return currentTexCoords;
+	float weight = afterDepth / (afterDepth - prevDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+
+	return finalTexCoords;
 }
 
 // 平行光
