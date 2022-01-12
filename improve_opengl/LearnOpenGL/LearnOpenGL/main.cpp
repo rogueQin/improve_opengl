@@ -270,17 +270,6 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-	//const GLubyte* OpenGLVersion = glGetString(GL_VERSION);
-	//std::cout << OpenGLVersion << std::endl;
-
-	//GLint flags;
-	//glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-	//if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-	//{
-	//}
-
-
-
 	// 创建GLFW窗口
 	GLFWwindow* window = glfwCreateWindow(Config::Screen_width, Config::Screen_height, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
@@ -309,18 +298,19 @@ int main()
 	//glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetCursorPosCallback(window, mouse_callback);
+	//glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
-	GLuint wood = loadTexture("../LearnOpenGL/res/res_450/wood.png");
-	GLuint toy_box_normal = loadTexture("../LearnOpenGL/res/res_450/toy_box_normal.png");
-	GLuint toy_box_disp = loadTexture("../LearnOpenGL/res/res_450/toy_box_disp.png");
+	GLuint wood = loadTexture("../LearnOpenGL/res/res_460/wood.png");
+	GLuint toy_box_normal = loadTexture("../LearnOpenGL/res/res_460/toy_box_normal.png");
+	GLuint toy_box_disp = loadTexture("../LearnOpenGL/res/res_460/toy_box_disp.png");
 
 	std::cout << glGetError() << std::endl;
 
-	Shader * shader_parallax_mapping = new Shader("../LearnOpenGL/res/res_450/shader_450_paralax_mapping.vs", "../LearnOpenGL/res/res_450/shader_450_paralax_mapping.fs");
+	Shader * shader_parallax_mapping = new Shader("../LearnOpenGL/res/res_460/shader_460_paralax_mapping.vs", "../LearnOpenGL/res/res_460/shader_460_paralax_mapping.fs");
+	Shader * shader_hdr = new Shader("../LearnOpenGL/res/res_460/shader_460_hdr.vs", "../LearnOpenGL/res/res_460/shader_460_hdr.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -337,6 +327,56 @@ int main()
 
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+
+	// 帧缓冲
+	GLuint FBO_hdr;
+	glGenFramebuffers(1, &FBO_hdr);
+
+	// 纹理缓冲附件
+	GLuint texture_hdr;
+	glGenTextures(1, &texture_hdr);
+	glBindTexture(GL_TEXTURE_2D, texture_hdr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLfloat borderColor[4] = { 1.0, 1.0,1.0,1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	//// 渲染缓冲对象附件
+	//GLuint RBO_hdr;
+	//glGenRenderbuffers(1, &RBO_hdr);
+	//glBindRenderbuffer(GL_RENDERBUFFER, RBO_hdr);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_hdr);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_hdr, 0);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_hdr);
+	
+	// 帧缓冲状态检测
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// 显示面板
+	GLuint VBO_view;
+	glGenBuffers(1, &VBO_view);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_view);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
+
+	GLuint VAO_view;
+	glGenVertexArrays(1, &VAO_view);
+	glBindVertexArray(VAO_view);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
 
 
 	// panel数据
@@ -381,9 +421,6 @@ int main()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Model * nanosuit = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
-	//Model * Railgun = new Model("../LearnOpenGL/res/res_440/cave.gltf");
-	
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -392,6 +429,7 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_hdr);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -441,21 +479,21 @@ int main()
 		glBindVertexArray(VAO_Normal_Panel);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shader_hdr->use();
 		trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(0.0, -5.0f, 0.0));
-		//trans = glm::scale(trans, glm::vec3(0.5f));
-		shader_parallax_mapping->setMatrix4f("model", trans);
-		shader_parallax_mapping->setFloat("material.shininess", 32.0f);
+		//trans = glm::scale(trans, glm::vec3(0.9, 0.9, 1));
+		shader_hdr->setMatrix4f("model", trans);
+		shader_hdr->setFloat("exposure", 0.5);
 
-		shader_parallax_mapping->setVec3f("lightPos", lightPos);
-		shader_parallax_mapping->setVec3f("viewPos", camera_main->getCameraPosition());
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_hdr);
+		shader_hdr->setInt("TextureHDR", 0);
 
-		shader_parallax_mapping->setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		shader_parallax_mapping->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		shader_parallax_mapping->setVec3f("directionLight.specular", glm::vec3(1.0f));
+		glBindVertexArray(VAO_view);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//nanosuit->draw(shader_parallax_mapping);
-		
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
