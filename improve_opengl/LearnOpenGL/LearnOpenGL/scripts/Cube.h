@@ -14,8 +14,8 @@
 class Cube
 {
 public:
-	Cube(GLfloat * vertices_cube, int size);
-	Cube(GLfloat * vertices_cube, int size, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	Cube(GLfloat * vertices_cube);
+	Cube(GLfloat * vertices_cube, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	~Cube();
 
 	void setPosition(glm::vec3 position);
@@ -27,6 +27,8 @@ public:
 	GLuint getVAO();
 
 	GLuint getVBO();
+
+	void TBNTriangle(GLfloat * vertex_input, GLfloat * vertex_output);
 
 	void renderCube(Shader* shader);
 
