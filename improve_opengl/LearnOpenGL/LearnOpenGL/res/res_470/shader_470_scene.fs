@@ -1,7 +1,10 @@
 
 #version 330 core
 
-out vec4 color;
+// out vec4 color;
+
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 struct Material{
 	//(通常等同于漫反射光照) vec3 ambient; // 环境光照
@@ -106,7 +109,8 @@ void main()
 	}
 	// result += calcPointLight(2, pointLights[2], newTexCoords);
 
-	color = vec4(result, 1.0);
+	FragColor = vec4(result, 1.0);
+	BrightColor = vec4(0.0);
 }
 
 // 视差贴图

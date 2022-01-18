@@ -2,9 +2,12 @@
 #version 330 core
 
 uniform vec3 LightColor;
-out vec4 color;
+
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 void main()
 {
-	color = vec4(LightColor, 1.0f);
+	FragColor = vec4(LightColor, 1.0f);
+	BrightColor = vec4(LightColor, 1.0f);
 }

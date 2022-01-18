@@ -206,9 +206,9 @@ glm::vec3 light_pos_list[] = {
 };
 
 glm::vec3 light_color_list[] = {
-	glm::vec3(1),
-	glm::vec3(1,0,1),
-	glm::vec3(0,0,1)
+	glm::vec3(1.1),
+	glm::vec3(1.1,0,1.1),
+	glm::vec3(0,0,1.1)
 };
 
 glm::vec3 grass_pos_list[] = {
@@ -340,6 +340,7 @@ int main()
 
 	Shader * shader_scene = new Shader("../LearnOpenGL/res/res_470/shader_470_scene.vs", "../LearnOpenGL/res/res_470/shader_470_scene.fs");
 	Shader * shader_light = new Shader("../LearnOpenGL/res/res_470/shader_470_light.vs", "../LearnOpenGL/res/res_470/shader_470_light.fs");
+	Shader * shader_blur = new Shader("../LearnOpenGL/res/res_470/shader_470_blur.vs", "../LearnOpenGL/res/res_470/shader_470_blur.fs");
 	Shader * shader_hdr = new Shader("../LearnOpenGL/res/res_470/shader_470_hdr.vs", "../LearnOpenGL/res/res_470/shader_470_hdr.fs");
 
 	camera_main->update();
@@ -360,14 +361,14 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
 	// 帧缓冲
-	GLuint FBO_hdr;
-	glGenFramebuffers(1, &FBO_hdr);
+	GLuint FBO_scene;
+	glGenFramebuffers(1, &FBO_scene);
 
-	GLfloat borderColor[4] = { 1.0, 1.0,1.0,1.0 };
+	GLfloat borderColor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	// 场景纹理缓冲附件
-	GLuint texture_frag;
-	glGenTextures(1, &texture_frag);
-	glBindTexture(GL_TEXTURE_2D, texture_frag);
+	GLuint texture_scene_frag;
+	glGenTextures(1, &texture_scene_frag);
+	glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -375,34 +376,65 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	// 高亮区域纹理缓冲附件
-	GLuint texture_bright;
-	glGenTextures(1, &texture_bright);
-	glBindTexture(GL_TEXTURE_2D, texture_bright);
+	// 场景纹理缓冲附件
+	GLuint texture_scene_bloom;
+	glGenTextures(1, &texture_scene_bloom);
+	glBindTexture(GL_TEXTURE_2D, texture_scene_bloom);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	
 
-	//// 渲染缓冲对象附件
-	//GLuint RBO_hdr;
-	//glGenRenderbuffers(1, &RBO_hdr);
-	//glBindRenderbuffer(GL_RENDERBUFFER, RBO_hdr);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
+	// 渲染缓冲对象附件
+	GLuint RBO_scene;
+	glGenRenderbuffers(1, &RBO_scene);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO_scene);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO_hdr);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_frag, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_bright, 0);
-	
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_hdr);
-	
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_scene_frag, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_scene_bloom, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_scene);
+
+	GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(2, attachments);
+
 	// 帧缓冲状态检测
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	GLfloat blurBorderColor[4] = { 0.0, 0.0, 0.0, 1.0 };
+
+	// 横向模糊缓冲
+	GLuint FBO_blur[2];
+	glGenFramebuffers(2, FBO_blur);
+
+	// 横向模糊纹理缓冲附件
+	GLuint texture_blur[2];
+	glGenTextures(2, texture_blur);
+
+	for (int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, texture_blur[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, blurBorderColor);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_blur[i], 0);
+
+		// 帧缓冲状态检测
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
 	// 显示面板
 	GLuint VBO_view;
@@ -474,7 +506,7 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_hdr);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
@@ -541,21 +573,46 @@ int main()
 
 		shader_light->use();
 		renderLight(shader_light);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//shader_hdr->use();
-		//trans = glm::mat4(1.0f);
-		////trans = glm::scale(trans, glm::vec3(0.9, 0.9, 1));
-		//shader_hdr->setMatrix4f("model", trans);
-		//shader_hdr->setFloat("exposure", 0.5);
+		// 高斯模糊
+		trans = glm::mat4(1.0f);
+		shader_blur->use();
+		shader_blur->setMatrix4f("model", trans);
+		shader_blur->setInt("image", 0);
 
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, texture_frag);
-		//shader_hdr->setInt("TextureHDR", 0);
+		bool horizontal = true;
+		for (int i = 0; i < 20; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur[i % 2]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			
+			shader_blur->setBool("horizontal", horizontal);
+			horizontal = !horizontal;
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, i == 0 ? texture_scene_bloom : texture_blur[(i + 1) % 2]);
 
-		//glBindVertexArray(VAO_view);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(VAO_view);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+
+		// 显示
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shader_hdr->use();
+		shader_hdr->setMatrix4f("model", trans);
+		shader_hdr->setInt("FragImg", 0);
+		shader_hdr->setInt("FragImg", 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture_blur[1]);
+
+		glBindVertexArray(VAO_view);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
