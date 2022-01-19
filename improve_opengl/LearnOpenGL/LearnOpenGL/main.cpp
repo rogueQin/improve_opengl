@@ -15,7 +15,6 @@
 #include "RenderCube.h"
 #include "SkyBox.h"
 
-
 GLfloat vertices_cube [] = {
 	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
@@ -187,16 +186,30 @@ GLfloat vertices_skybox[] = {
 		-1.0f,  1.0f,  1.0f
 };
 
-glm::vec3 cube_pos_lit[] = {
-	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(-2.0f, -2.0f, 2.0f),
-	glm::vec3(-2.0f, 2.0f, 2.0f),
-	glm::vec3(2.0f, 2.0f, 2.0f),
-	glm::vec3(2.0f, -2.0f, 2.0f),
-	glm::vec3(-2.0f, -2.0f, -2.0f),
-	glm::vec3(-2.0f, 2.0f, -2.0f),
-	glm::vec3(2.0f, 2.0f, -2.0f),
-	glm::vec3(2.0f, -2.0f, -2.0f)
+Model* model;
+
+Cube* cube;
+
+glm::vec3 model_pos_lit[] = {
+	glm::vec3(-3.0f, 0.0f, -3.0f),
+	glm::vec3(-1.0f, 0.0f, -3.0f),	
+	glm::vec3(1.0f, 0.0f, -3.0f),
+	glm::vec3(3.0f, 0.0f, -3.0f),
+
+	glm::vec3(-3.0f, 0.0f, -1.0f),
+	glm::vec3(-1.0f, 0.0f, -1.0f),
+	glm::vec3(1.0f, 0.0f, -1.0f),
+	glm::vec3(3.0f, 0.0f, -1.0f),
+
+	glm::vec3(-3.0f, 0.0f, 1.0f),
+	glm::vec3(-1.0f, 0.0f, 1.0f),
+	glm::vec3(1.0f, 0.0f, 1.0f),
+	glm::vec3(3.0f, 0.0f, 1.0f),
+
+	glm::vec3(-3.0f, 0.0f, 3.0f),
+	glm::vec3(-1.0f, 0.0f, 3.0f),
+	glm::vec3(1.0f, 0.0f, 3.0f),
+	glm::vec3(3.0f, 0.0f, 3.0f)
 };
 
 glm::vec3 light_pos_list[] = {
@@ -209,19 +222,6 @@ glm::vec3 light_color_list[] = {
 	glm::vec3(1.1),
 	glm::vec3(1.1,0,1.1),
 	glm::vec3(0,0,1.1)
-};
-
-glm::vec3 grass_pos_list[] = {
-	glm::vec3(0.0f, 1.0f, 0.0f),
-	glm::vec3(3.0f, 1.0f, 1.0f),
-	glm::vec3(1.0f, 1.0f, 3.0f),
-	glm::vec3(2.0f, 1.0f, 2.0f),
-};
-
-glm::vec3 window_pos_list[] = {
-	glm::vec3(0.0f, 7.0f, 3.0f),
-	glm::vec3(-1.0f, 8.0f, 5.0f),
-	glm::vec3(-1.0f, 5.0f, 7.0f),
 };
 
 unsigned int indices[] = {
@@ -264,17 +264,6 @@ unsigned int loadTexture(std::string fileName);
 unsigned int loadCubeMap(std::vector<std::string> faces);
 int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output);
 
-Cube * cube_ground;
-
-Cube * cube_box_1;
-Cube * cube_box_2;
-Cube * cube_box_3;
-Cube * cube_box_4;
-
-Cube * cube_light_1;
-Cube * cube_light_2;
-Cube * cube_light_3;
-
 int main() 
 {
 	// 初始化GLFW窗口
@@ -305,7 +294,7 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 7.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(3.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -318,18 +307,6 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
-
-	cube_ground = new Cube(vertices_ground, glm::vec3(0, -0.01f, 0), glm::vec3(0,0,0), glm::vec3(8, 0.02f, 8));
-
-	cube_box_1 = new Cube(vertices_cube, glm::vec3(2, 1, 2), glm::vec3(45, 45, 45), glm::vec3(0.8));
-	cube_box_2 = new Cube(vertices_cube, glm::vec3(2, 2.4, -2), glm::vec3(30, 45, 60), glm::vec3(0.8));
-	cube_box_3 = new Cube(vertices_cube, glm::vec3(-2, 2.8, 2), glm::vec3(45, 40, 50), glm::vec3(0.8));
-	cube_box_4 = new Cube(vertices_cube, glm::vec3(-2, 1.2, -2), glm::vec3(50, 80, 70), glm::vec3(0.8));
-
-	cube_light_1 = new Cube(vertices_cube, light_pos_list[0], glm::vec3(0), glm::vec3(0.5));
-	cube_light_2 = new Cube(vertices_cube, light_pos_list[1], glm::vec3(0), glm::vec3(0.5));
-	cube_light_3 = new Cube(vertices_cube, light_pos_list[2], glm::vec3(0), glm::vec3(0.5));
-
 	GLuint wood = loadTexture("../LearnOpenGL/res/res_470/wood.png");
 	GLuint container2 = loadTexture("../LearnOpenGL/res/res_470/container2.png");
 	GLuint container2_specular = loadTexture("../LearnOpenGL/res/res_470/container2_specular.png");
@@ -338,17 +315,17 @@ int main()
 
 	std::cout << glGetError() << std::endl;
 
-	Shader * shader_scene = new Shader("../LearnOpenGL/res/res_470/shader_470_scene.vs", "../LearnOpenGL/res/res_470/shader_470_scene.fs");
-	Shader * shader_light = new Shader("../LearnOpenGL/res/res_470/shader_470_light.vs", "../LearnOpenGL/res/res_470/shader_470_light.fs");
-	Shader * shader_blur = new Shader("../LearnOpenGL/res/res_470/shader_470_blur.vs", "../LearnOpenGL/res/res_470/shader_470_blur.fs");
-	Shader * shader_hdr = new Shader("../LearnOpenGL/res/res_470/shader_470_hdr.vs", "../LearnOpenGL/res/res_470/shader_470_hdr.fs");
+	cube = new Cube(vertices_cube, glm::vec3(0), glm::vec3(0), glm::vec3(1));
+	model = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	Shader * shader_gbuffer = new Shader("../LearnOpenGL/res/res_480/shader_480_gbuffer.vs", "../LearnOpenGL/res/res_480/shader_480_gbuffer.fs");
+
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
 	glm::mat4 projection = camera_main->getProjection();
 
-	shader_scene->setBlock("Camera", 0);
-	shader_light->setBlock("Camera", 0);
+	shader_gbuffer->setBlock("Camera", 0);
+	//shader_light->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -360,144 +337,73 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
-	// 帧缓冲
-	GLuint FBO_scene;
-	glGenFramebuffers(1, &FBO_scene);
+	//// 帧缓冲
+	//GLuint FBO_scene;
+	//glGenFramebuffers(1, &FBO_scene);
 
-	GLfloat borderColor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	// 场景纹理缓冲附件
-	GLuint texture_scene_frag;
-	glGenTextures(1, &texture_scene_frag);
-	glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	//GLfloat borderColor[4] = { 1.0, 1.0, 1.0, 1.0 };
+	//// 场景纹理缓冲附件
+	//GLuint texture_scene_frag;
+	//glGenTextures(1, &texture_scene_frag);
+	//glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	// 场景纹理缓冲附件
-	GLuint texture_scene_bloom;
-	glGenTextures(1, &texture_scene_bloom);
-	glBindTexture(GL_TEXTURE_2D, texture_scene_bloom);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	//// 场景纹理缓冲附件
+	//GLuint texture_scene_bloom;
+	//glGenTextures(1, &texture_scene_bloom);
+	//glBindTexture(GL_TEXTURE_2D, texture_scene_bloom);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	// 渲染缓冲对象附件
-	GLuint RBO_scene;
-	glGenRenderbuffers(1, &RBO_scene);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO_scene);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_scene_frag, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_scene_bloom, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_scene);
+	//// 渲染缓冲对象附件
+	//GLuint RBO_scene;
+	//glGenRenderbuffers(1, &RBO_scene);
+	//glBindRenderbuffer(GL_RENDERBUFFER, RBO_scene);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
+	//
+	//glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_scene_frag, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_scene_bloom, 0);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_scene);
 
-	GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	glDrawBuffers(2, attachments);
+	//GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	//glDrawBuffers(2, attachments);
 
-	// 帧缓冲状态检测
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//// 帧缓冲状态检测
+	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	//	std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	//// 显示面板
+	//GLuint VBO_view;
+	//glGenBuffers(1, &VBO_view);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO_view);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
 
-	GLfloat blurBorderColor[4] = { 0.0, 0.0, 0.0, 1.0 };
+	//GLuint VAO_view;
+	//glGenVertexArrays(1, &VAO_view);
+	//glBindVertexArray(VAO_view);
+	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	//	glEnableVertexAttribArray(0);
 
-	// 横向模糊缓冲
-	GLuint FBO_blur[2];
-	glGenFramebuffers(2, FBO_blur);
+	//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	//	glEnableVertexAttribArray(1);
 
-	// 横向模糊纹理缓冲附件
-	GLuint texture_blur[2];
-	glGenTextures(2, texture_blur);
-
-	for (int i = 0; i < 2; i++)
-	{
-		glBindTexture(GL_TEXTURE_2D, texture_blur[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, blurBorderColor);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_blur[i], 0);
-
-		// 帧缓冲状态检测
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	// 显示面板
-	GLuint VBO_view;
-	glGenBuffers(1, &VBO_view);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_view);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
-
-	GLuint VAO_view;
-	glGenVertexArrays(1, &VAO_view);
-	glBindVertexArray(VAO_view);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
-	glBindVertexArray(0);
-
-
-	// panel数据
-	GLfloat *Panel_triangle_1 = new GLfloat[42]();
-	GLfloat *Panel_triangle_2 = new GLfloat[42]();
-	int triangle_length_1, triangle_length_2;
-	triangle_length_1 = renderPanel(&vertices_normal_map_panel[0], Panel_triangle_1);
-	triangle_length_2 = renderPanel(&vertices_normal_map_panel[24], Panel_triangle_2);
-	
-	GLfloat panel_triangle[84];
-	for (int i = 0; i < 42; i++)
-	{
-		panel_triangle[i] = Panel_triangle_1[i];
-		panel_triangle[42 + i] = Panel_triangle_2[i];
-	}
-
-	GLuint VBO_Normal_Panel;
-	glGenBuffers(1, &VBO_Normal_Panel);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_Normal_Panel);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(panel_triangle), panel_triangle, GL_STATIC_DRAW);
-
-	GLuint VAO_Normal_Panel;
-	glGenVertexArrays(1, &VAO_Normal_Panel);
-	glBindVertexArray(VAO_Normal_Panel);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
-
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(3);
-
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(GLfloat), (GLvoid*)(11 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(4);
-	glBindVertexArray(0);
-
+	//	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	//	glEnableVertexAttribArray(2);
+	//glBindVertexArray(0);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -506,7 +412,7 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
@@ -524,102 +430,58 @@ int main()
 
 		trans = glm::mat4(1.0f);
 
-		shader_scene->use();
-		shader_scene->setInt("material.texture_diffuse1", 0);
-		shader_scene->setInt("material.texture_specular1", 1);
-		shader_scene->setInt("material.texture_normal1", 2);
-		shader_scene->setInt("material.texture_diplamence1", 3);
+		shader_gbuffer->use();
+		shader_gbuffer->setFloat("material.shininess", 32.0f);
 
-		shader_scene->setFloat("material.height_scale", 0.2f);
-		shader_scene->setFloat("material.shininess", 32.0f);
+		shader_gbuffer->setVec3f("directionLightPos", lightPos);
+		shader_gbuffer->setVec3f("directionLight.ambient", glm::vec3(0.2f));
+		shader_gbuffer->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
+		shader_gbuffer->setVec3f("directionLight.specular", glm::vec3(1.0f));
 
-		shader_scene->setVec3f("directionLightPos", lightPos);
-		shader_scene->setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		shader_scene->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		shader_scene->setVec3f("directionLight.specular", glm::vec3(1.0f));
+		//for (int i = 0; i < 3; i++)
+		//{
+		//	shader_gbuffer->setVec3f("pointLightPos[" + std::to_string(i) + "]", light_pos_list[i]);
+		//	shader_gbuffer->setVec3f("pointLights[" + std::to_string(i) + "].ambient", light_color_list[i] * 0.2f);
+		//	shader_gbuffer->setVec3f("pointLights[" + std::to_string(i) + "].diffuse", light_color_list[i] * 0.5f);
+		//	shader_gbuffer->setVec3f("pointLights[" + std::to_string(i) + "].specular", light_color_list[i] * 1.0f);
 
-		for (int i = 0; i < 3; i++)
-		{
-			shader_scene->setVec3f("pointLightPos[" + std::to_string(i) + "]", light_pos_list[i]);
-			shader_scene->setVec3f("pointLights[" + std::to_string(i) + "].ambient", light_color_list[i] * 0.2f);
-			shader_scene->setVec3f("pointLights[" + std::to_string(i) + "].diffuse", light_color_list[i] * 0.5f);
-			shader_scene->setVec3f("pointLights[" + std::to_string(i) + "].specular", light_color_list[i] * 1.0f);
+		//	shader_gbuffer->setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+		//	shader_gbuffer->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
+		//	shader_gbuffer->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
+		//}
 
-			shader_scene->setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
-			shader_scene->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
-			shader_scene->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
-		}
+		shader_gbuffer->setVec3f("viewPos", camera_main->getCameraPosition());
 
-		shader_scene->setVec3f("viewPos", camera_main->getCameraPosition());
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, container2);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, container2_specular);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, toy_box_normal);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, toy_box_disp);
-
-		renderScene(shader_scene);
+		renderScene(shader_gbuffer);
 		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, wood);
+		//shader_light->use();
+		//renderLight(shader_light);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		cube_ground->renderCube(shader_scene);
 
-		shader_light->use();
-		renderLight(shader_light);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//// 显示
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//shader_hdr->use();
+		//shader_hdr->setMatrix4f("model", trans);
+		//shader_hdr->setInt("FragImg", 0);
+		//shader_hdr->setInt("FragImg", 1);
 
-		// 高斯模糊
-		trans = glm::mat4(1.0f);
-		shader_blur->use();
-		shader_blur->setMatrix4f("model", trans);
-		shader_blur->setInt("image", 0);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
 
-		bool horizontal = true;
-		for (int i = 0; i < 20; i++)
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur[i % 2]);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			
-			shader_blur->setBool("horizontal", horizontal);
-			horizontal = !horizontal;
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, i == 0 ? texture_scene_bloom : texture_blur[(i + 1) % 2]);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, texture_blur[1]);
 
-			glBindVertexArray(VAO_view);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-
-		// 显示
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shader_hdr->use();
-		shader_hdr->setMatrix4f("model", trans);
-		shader_hdr->setInt("FragImg", 0);
-		shader_hdr->setInt("FragImg", 1);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture_blur[1]);
-
-		glBindVertexArray(VAO_view);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glBindVertexArray(VAO_view);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
 
-	glDeleteBuffers(1, &VBO_Normal_Panel);
-	glDeleteBuffers(1, &VAO_Normal_Panel);
+	//glDeleteBuffers(1, &VBO_Normal_Panel);
+	//glDeleteBuffers(1, &VAO_Normal_Panel);
 
 	glfwTerminate();
 	 
@@ -688,22 +550,28 @@ int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output)
 
 void renderScene(Shader * render_shader) 
 {
-	cube_box_1->renderCube(render_shader);
-	cube_box_2->renderCube(render_shader);
-	cube_box_3->renderCube(render_shader);
-	cube_box_4->renderCube(render_shader);
+	glm::mat4 trans = glm::mat4(1.0f);
+	for (int i = 0; i < 16; i ++)
+	{
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, model_pos_lit[i]);
+		trans = glm::scale(trans, glm::vec3(0.2f));
+
+		render_shader->setMatrix4f("model", trans);
+		model->draw(render_shader);
+	}
 }
 
 void renderLight(Shader * render_shader)
 {
-	render_shader->setVec3f("LightColor", light_color_list[0]);
-	cube_light_1->renderCube(render_shader);
+	//render_shader->setVec3f("LightColor", light_color_list[0]);
+	//cube_light_1->renderCube(render_shader);
 
-	render_shader->setVec3f("LightColor", light_color_list[1]);
-	cube_light_2->renderCube(render_shader);
+	//render_shader->setVec3f("LightColor", light_color_list[1]);
+	//cube_light_2->renderCube(render_shader);
 
-	render_shader->setVec3f("LightColor", light_color_list[2]);
-	cube_light_3->renderCube(render_shader);
+	//render_shader->setVec3f("LightColor", light_color_list[2]);
+	//cube_light_3->renderCube(render_shader);
 }
 
 unsigned int loadTexture(std::string fileName)
