@@ -13,38 +13,24 @@ layout (std140) uniform Camera
 };
 
 uniform mat4 model;
-uniform vec3 directionLightPos;
 uniform vec3 viewPos;
 
 out VS_OUT{
 	vec2 TexCoords;
 	vec3 FragPos;
-	vec3 TangentZeroPos;
-	vec3 TangentDirectionLightPos;
-	// vec3 TangentPointLightPos[3];
-	vec3 TangentViewPos;
-	vec3 TangentFragPos;
+	mat3 TBN;
 } vs_out;
 
 void main()
 {
 	mat3 normalMatrix = transpose(inverse(mat3(model)));
+
 	vec3 T = normalize(normalMatrix * tangent);
 	vec3 B = normalize(normalMatrix * bitangent);
 	vec3 N = normalize(normalMatrix * aNormal);
-	mat3 TBN = transpose(mat3(T, B, N));
-
-	vec3 zero_pos = vec3(0);
-
+	vs_out.TBN = mat3(T, B, N);
 	vs_out.TexCoords = aTexCoords;
 	vs_out.FragPos = vec3(model * vec4(aPosition, 1.0));
-	vs_out.TangentDirectionLightPos = TBN * directionLightPos;
-	// vs_out.TangentPointLightPos[0] = TBN * pointLightPos[0];
-	// vs_out.TangentPointLightPos[1] = TBN * pointLightPos[1];
-	// vs_out.TangentPointLightPos[2] = TBN * pointLightPos[2];
-	vs_out.TangentZeroPos = TBN * zero_pos;
-	vs_out.TangentViewPos = TBN * viewPos;
-	vs_out.TangentFragPos = TBN * vec3(model * vec4(aPosition, 1.0));
 
 	gl_Position = projection * view * model * vec4(aPosition, 1.0);
 }

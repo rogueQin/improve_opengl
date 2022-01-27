@@ -318,7 +318,8 @@ int main()
 	cube = new Cube(vertices_cube, glm::vec3(0), glm::vec3(0), glm::vec3(1));
 	model = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
 	Shader * shader_gbuffer = new Shader("../LearnOpenGL/res/res_480/shader_480_gbuffer.vs", "../LearnOpenGL/res/res_480/shader_480_gbuffer.fs");
-
+	Shader * shader_view = new Shader("../LearnOpenGL/res/res_480/shader_480_view.vs", "../LearnOpenGL/res/res_480/shader_480_view.fs");
+	Shader * shader_light = new Shader("../LearnOpenGL/res/res_480/shader_480_light.vs", "../LearnOpenGL/res/res_480/shader_480_light.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -337,70 +338,82 @@ int main()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
-	//// 帧缓冲
-	//GLuint FBO_scene;
-	//glGenFramebuffers(1, &FBO_scene);
+	// 帧缓冲
+	GLuint FBO_G_Buffer;
+	glGenFramebuffers(1, &FBO_G_Buffer);
 
-	//GLfloat borderColor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	//// 场景纹理缓冲附件
-	//GLuint texture_scene_frag;
-	//glGenTextures(1, &texture_scene_frag);
-	//glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	GLfloat borderColor[4] = { 1.0, 1.0, 1.0, 1.0 };
+	// 位置纹理缓冲附件
+	GLuint texture_position;
+	glGenTextures(1, &texture_position);
+	glBindTexture(GL_TEXTURE_2D, texture_position);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	//// 场景纹理缓冲附件
-	//GLuint texture_scene_bloom;
-	//glGenTextures(1, &texture_scene_bloom);
-	//glBindTexture(GL_TEXTURE_2D, texture_scene_bloom);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	// 法线纹理缓冲附件
+	GLuint texture_normal;
+	glGenTextures(1, &texture_normal);
+	glBindTexture(GL_TEXTURE_2D, texture_normal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	//// 渲染缓冲对象附件
-	//GLuint RBO_scene;
-	//glGenRenderbuffers(1, &RBO_scene);
-	//glBindRenderbuffer(GL_RENDERBUFFER, RBO_scene);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
-	//
-	//glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_scene_frag, 0);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_scene_bloom, 0);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_scene);
+	// 纹理缓冲附件
+	GLuint texture_albedo_specular;
+	glGenTextures(1, &texture_albedo_specular);
+	glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	//GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	//glDrawBuffers(2, attachments);
+	// 渲染缓冲对象附件
+	GLuint RBO_G_Buffer;
+	glGenRenderbuffers(1, &RBO_G_Buffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO_G_Buffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_G_Buffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_position, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_normal, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_albedo_specular, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_G_Buffer);
 
-	//// 帧缓冲状态检测
-	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	//	std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLuint attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments);
 
-	//// 显示面板
-	//GLuint VBO_view;
-	//glGenBuffers(1, &VBO_view);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO_view);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
+	// 帧缓冲状态检测
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	//GLuint VAO_view;
-	//glGenVertexArrays(1, &VAO_view);
-	//glBindVertexArray(VAO_view);
-	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	//	glEnableVertexAttribArray(0);
+	// 显示面板
+	GLuint VBO_view;
+	glGenBuffers(1, &VBO_view);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_view);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
 
-	//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	//	glEnableVertexAttribArray(1);
+	GLuint VAO_view;
+	glGenVertexArrays(1, &VAO_view);
+	glBindVertexArray(VAO_view);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
 
-	//	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	//	glEnableVertexAttribArray(2);
-	//glBindVertexArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -412,7 +425,7 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO_scene);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_G_Buffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
@@ -431,32 +444,28 @@ int main()
 		trans = glm::mat4(1.0f);
 
 		shader_gbuffer->use();
-		shader_gbuffer->setFloat("material.shininess", 32.0f);
-
-		shader_gbuffer->setVec3f("directionLightPos", lightPos);
-		shader_gbuffer->setVec3f("directionLight.ambient", glm::vec3(0.2f));
-		shader_gbuffer->setVec3f("directionLight.diffuse", glm::vec3(0.5f));
-		shader_gbuffer->setVec3f("directionLight.specular", glm::vec3(1.0f));
-
-		//for (int i = 0; i < 3; i++)
-		//{
-		//	shader_gbuffer->setVec3f("pointLightPos[" + std::to_string(i) + "]", light_pos_list[i]);
-		//	shader_gbuffer->setVec3f("pointLights[" + std::to_string(i) + "].ambient", light_color_list[i] * 0.2f);
-		//	shader_gbuffer->setVec3f("pointLights[" + std::to_string(i) + "].diffuse", light_color_list[i] * 0.5f);
-		//	shader_gbuffer->setVec3f("pointLights[" + std::to_string(i) + "].specular", light_color_list[i] * 1.0f);
-
-		//	shader_gbuffer->setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
-		//	shader_gbuffer->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
-		//	shader_gbuffer->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
-		//}
-
+		shader_gbuffer->setMatrix4f("model", trans);
 		shader_gbuffer->setVec3f("viewPos", camera_main->getCameraPosition());
-
+		shader_gbuffer->setFloat("material.shininess", 32.0f);
 		renderScene(shader_gbuffer);
 		
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shader_view->use();
+		trans = glm::mat4(1.0f);
+		shader_view->setMatrix4f("model", trans);
+		shader_view->setInt("Image", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
+
+		glBindVertexArray(VAO_view);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//VBO_view
+
 		//shader_light->use();
 		//renderLight(shader_light);
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 		//// 显示
