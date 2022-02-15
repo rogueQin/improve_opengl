@@ -108,11 +108,11 @@ GLuint Cube::getVBO()
 void Cube::renderCube(Shader* shader)
 {
 	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::scale(trans, this->scale);
+	trans = glm::translate(trans, this->position);
 	trans = glm::rotate(trans, glm::radians(this->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	trans = glm::rotate(trans, glm::radians(this->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	trans = glm::rotate(trans, glm::radians(this->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	trans = glm::translate(trans, this->position);
+	trans = glm::scale(trans, this->scale);
 	shader->setMatrix4f("model", trans);
 
 	glBindVertexArray(VAO);
