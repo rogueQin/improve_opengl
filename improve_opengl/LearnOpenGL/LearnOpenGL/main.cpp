@@ -213,9 +213,25 @@ glm::vec3 model_pos_lit[] = {
 };
 
 glm::vec3 light_pos_list[] = {
-	glm::vec3(-1.6, 2, 1.2),
-	glm::vec3(-1.6, 1, -1.2),
-	glm::vec3(1.2, 2, 0.8)
+	glm::vec3(-3.4f, 3.0f, -3.4f),
+	glm::vec3(-1.2f, 3.0f, -3.4f),
+	glm::vec3(1.2f, 3.0f, -3.4f),
+	glm::vec3(3.4f, 3.0f, -3.4f),
+
+	glm::vec3(-3.4f, 3.0f, -1.2f),
+	glm::vec3(-1.2f, 3.0f, -1.2f),
+	glm::vec3(1.2f, 3.0f, -1.2f),
+	glm::vec3(3.4f, 3.0f, -1.2f),
+
+	glm::vec3(-3.4f, 3.0f, 1.2f),
+	glm::vec3(-1.2f, 3.0f, 1.2f),
+	glm::vec3(1.2f, 3.0f, 1.2f),
+	glm::vec3(3.4f, 3.0f, 1.2f),
+
+	glm::vec3(-3.4f, 3.0f, 3.4f),
+	glm::vec3(-1.2f, 3.0f, 3.4f),
+	glm::vec3(1.2f, 3.0f, 3.4f),
+	glm::vec3(3.4f, 3.0f, 3.4f)
 };
 
 glm::vec3 light_color_list[] = {
@@ -295,6 +311,7 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	camera_main = new Camera(glm::vec3(3.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	//camera_main = new Camera(glm::vec3(0.0f, 0.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -326,7 +343,7 @@ int main()
 	glm::mat4 projection = camera_main->getProjection();
 
 	shader_gbuffer->setBlock("Camera", 0);
-	//shader_light->setBlock("Camera", 0);
+	shader_light->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -425,15 +442,7 @@ int main()
 		// 处理输入事件 
 		processInput(window);
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_G_Buffer);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 0.0f);
 		glm::mat4 trans = glm::mat4(1.0f);
-		
-		lightPos.x = 2.0 * glm::sin((float)glfwGetTime() * glm::radians(50.0f));
-		lightPos.z = 2.0 * glm::cos((float)glfwGetTime() * glm::radians(50.0f));
-
 		camera_main->update();
 		view = camera_main->getView();
 		projection = camera_main->getProjection();
@@ -441,49 +450,57 @@ int main()
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
+		// gBuffer 缓冲
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_G_Buffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		trans = glm::mat4(1.0f);
-
 		shader_gbuffer->use();
 		shader_gbuffer->setMatrix4f("model", trans);
 		shader_gbuffer->setVec3f("viewPos", camera_main->getCameraPosition());
 		shader_gbuffer->setFloat("material.shininess", 32.0f);
 		renderScene(shader_gbuffer);
-		
 
+		// buffer view
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader_view->use();
 		trans = glm::mat4(1.0f);
 		shader_view->setMatrix4f("model", trans);
-		shader_view->setInt("Image", 0);
+
+		shader_view->setInt("ImagePosition", 0);
+		shader_view->setInt("ImageNormal", 1);
+		shader_view->setInt("ImageAlbedoSpecular", 2);
+
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_position);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture_normal);
+
+		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
 
+		renderLight(shader_view);
+		shader_view->setVec3f("viewPos", camera_main->getCameraPosition());
+
 		glBindVertexArray(VAO_view);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//VBO_view
+		// light
+		//glClear(GL_DEPTH_BUFFER_BIT);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO_G_Buffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, Config::Screen_width, Config::Screen_height, 0, 0, Config::Screen_width, Config::Screen_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-		//shader_light->use();
-		//renderLight(shader_light);
-
-
-		//// 显示
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//shader_hdr->use();
-		//shader_hdr->setMatrix4f("model", trans);
-		//shader_hdr->setInt("FragImg", 0);
-		//shader_hdr->setInt("FragImg", 1);
-
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, texture_scene_frag);
-
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, texture_blur[1]);
-
-		//glBindVertexArray(VAO_view);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
+		shader_light->use();
+		trans = glm::mat4(1.0f);
+		for (int i = 0; i < 16; i ++)
+		{
+			shader_light->setVec3f("LightColor", glm::vec3(1.0));
+			cube->setPosition(light_pos_list[i]);
+			cube->setScale(glm::vec3(0.1f));
+			cube->renderCube(shader_light);
+		}
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
@@ -573,14 +590,12 @@ void renderScene(Shader * render_shader)
 
 void renderLight(Shader * render_shader)
 {
-	//render_shader->setVec3f("LightColor", light_color_list[0]);
-	//cube_light_1->renderCube(render_shader);
-
-	//render_shader->setVec3f("LightColor", light_color_list[1]);
-	//cube_light_2->renderCube(render_shader);
-
-	//render_shader->setVec3f("LightColor", light_color_list[2]);
-	//cube_light_3->renderCube(render_shader);
+	glm::mat4 trans = glm::mat4(1.0f);
+	for (int i = 0; i < 16; i++)
+	{
+		render_shader->setVec3f("lights[" + std::to_string(i) +"].Position", light_pos_list[i]);
+		render_shader->setVec3f("lights[" + std::to_string(i) + "].Color", glm::vec3(1.0f));
+	}
 }
 
 unsigned int loadTexture(std::string fileName)
