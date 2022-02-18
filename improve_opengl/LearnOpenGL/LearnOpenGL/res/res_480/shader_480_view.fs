@@ -19,9 +19,9 @@ uniform vec3 viewPos;
 
 void main()
 {	
-	vec3 FragPos = texture(ImagePosition, TexCoords).rbg;
-	vec3 Normal = texture(ImageNormal, TexCoords).rbg;
-	vec3 Albedo = texture(ImageAlbedoSpecular, TexCoords).rbg;
+	vec3 FragPos = texture(ImagePosition, TexCoords).rgb;
+	vec3 Normal = texture(ImageNormal, TexCoords).rgb;
+	vec3 Albedo = texture(ImageAlbedoSpecular, TexCoords).rgb;
 	float Specular = texture(ImageAlbedoSpecular, TexCoords).a;
 
 	vec3 lighting = Albedo * 0.1;

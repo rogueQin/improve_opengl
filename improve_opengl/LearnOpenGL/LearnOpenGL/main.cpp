@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <random>
 #include "Shader.h"
 #include "stb_image.h"
 #include <glm/glm.hpp>
@@ -188,7 +189,12 @@ GLfloat vertices_skybox[] = {
 
 Model* model;
 
-Cube* cube;
+Cube* ground;
+Cube* light;
+
+GLuint container2;
+GLuint container2_specular;
+GLuint toy_box_normal;
 
 glm::vec3 model_pos_lit[] = {
 	glm::vec3(-3.0f, 0.0f, -3.0f),
@@ -280,6 +286,8 @@ unsigned int loadTexture(std::string fileName);
 unsigned int loadCubeMap(std::vector<std::string> faces);
 int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output);
 
+GLfloat lerp(GLfloat a, GLfloat b, GLfloat f);
+
 int main() 
 {
 	// 初始化GLFW窗口
@@ -310,8 +318,8 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(3.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
-	//camera_main = new Camera(glm::vec3(0.0f, 0.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	// camera_main = new Camera(glm::vec3(3.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -324,19 +332,21 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
-	GLuint wood = loadTexture("../LearnOpenGL/res/res_470/wood.png");
-	GLuint container2 = loadTexture("../LearnOpenGL/res/res_470/container2.png");
-	GLuint container2_specular = loadTexture("../LearnOpenGL/res/res_470/container2_specular.png");
-	GLuint toy_box_normal = loadTexture("../LearnOpenGL/res/res_470/toy_box_normal.png");
-	GLuint toy_box_disp = loadTexture("../LearnOpenGL/res/res_470/toy_box_disp.png");
+	container2 = loadTexture("../LearnOpenGL/res/res_490/container2.png");
+	container2_specular = loadTexture("../LearnOpenGL/res/res_490/container2_specular.png");
+	toy_box_normal = loadTexture("../LearnOpenGL/res/res_490/toy_box_normal.png");
 
 	std::cout << glGetError() << std::endl;
 
-	cube = new Cube(vertices_cube, glm::vec3(0), glm::vec3(0), glm::vec3(1));
+	ground = new Cube(vertices_ground, glm::vec3(0, -0.5, 0), glm::vec3(0), glm::vec3(15,0.5,15));
+	light = new Cube(vertices_ground, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
+
 	model = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
-	Shader * shader_gbuffer = new Shader("../LearnOpenGL/res/res_480/shader_480_gbuffer.vs", "../LearnOpenGL/res/res_480/shader_480_gbuffer.fs");
-	Shader * shader_view = new Shader("../LearnOpenGL/res/res_480/shader_480_view.vs", "../LearnOpenGL/res/res_480/shader_480_view.fs");
-	Shader * shader_light = new Shader("../LearnOpenGL/res/res_480/shader_480_light.vs", "../LearnOpenGL/res/res_480/shader_480_light.fs");
+	
+	Shader * shader_gbuffer = new Shader("../LearnOpenGL/res/res_490/shader_490_gbuffer.vs", "../LearnOpenGL/res/res_490/shader_490_gbuffer.fs");
+	Shader * shader_ssao = new Shader("../LearnOpenGL/res/res_490/shader_490_ssao.vs", "../LearnOpenGL/res/res_490/shader_490_ssao.fs");
+	Shader * shader_view = new Shader("../LearnOpenGL/res/res_490/shader_490_view.vs", "../LearnOpenGL/res/res_490/shader_490_view.fs");
+	Shader * shader_light = new Shader("../LearnOpenGL/res/res_490/shader_490_light.vs", "../LearnOpenGL/res/res_490/shader_490_light.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -364,12 +374,12 @@ int main()
 	GLuint texture_position;
 	glGenTextures(1, &texture_position);
 	glBindTexture(GL_TEXTURE_2D, texture_position);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
 	// 法线纹理缓冲附件
 	GLuint texture_normal;
@@ -410,8 +420,62 @@ int main()
 
 	// 帧缓冲状态检测
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+		std::cout << "ERROR:FRAMEBUFFER:: g framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// SSAO缓冲
+	GLuint FBO_SSAO_Buffer;
+	glGenFramebuffers(1, &FBO_SSAO_Buffer);
+
+	// SSAO纹理缓冲附件
+	GLuint texture_SSAO;
+	glGenTextures(1, &texture_SSAO);
+	glBindTexture(GL_TEXTURE_2D, texture_SSAO);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_SSAO_Buffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_SSAO, 0);
+
+	// 帧缓冲状态检测
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR:FRAMEBUFFER:: SSAO framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// 样本点
+	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
+	std::default_random_engine generator;
+	std::vector<glm::vec3> ssao_kernel;
+	for (GLuint i = 0; i < 64; i++)
+	{
+		glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+		sample = glm::normalize(sample);
+		//sample *= randomFloats(generator);
+		GLfloat scale = GLfloat(i) / 64.0;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		sample *= scale;
+		ssao_kernel.push_back(sample);
+	}
+
+	// 随机旋转法线
+	std::vector<glm::vec3> ssao_noise;
+	for (GLuint i = 0; i < 16; i++)
+	{
+		glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+		ssao_noise.push_back(noise);
+	}
+	// 随机旋转纹理
+	GLuint texture_ssao_noise;
+	glGenTextures(1, &texture_ssao_noise);
+	glBindTexture(GL_TEXTURE_2D, texture_ssao_noise);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssao_noise[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
 
 	// 显示面板
 	GLuint VBO_view;
@@ -460,16 +524,26 @@ int main()
 		shader_gbuffer->setFloat("material.shininess", 32.0f);
 		renderScene(shader_gbuffer);
 
-		// buffer view
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shader_view->use();
+		// SSAO
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_SSAO_Buffer);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
 		trans = glm::mat4(1.0f);
-		shader_view->setMatrix4f("model", trans);
+		shader_ssao->use();
+		shader_ssao->setMatrix4f("model", trans);
 
-		shader_view->setInt("ImagePosition", 0);
-		shader_view->setInt("ImageNormal", 1);
-		shader_view->setInt("ImageAlbedoSpecular", 2);
+		for (int i =0; i < 64; i++)
+		{
+			shader_ssao->setVec3f("samples["+std::to_string(i)+"]", ssao_kernel[i]);
+		}
+
+		shader_ssao->setFloat("radius", 1.0f);
+		//shader_ssao->setMatrix4f("projection", projection);
+
+		shader_ssao->setInt("ImagePosition", 0);
+		shader_ssao->setInt("ImageNormal", 1);
+		shader_ssao->setInt("ImageAlbedoSpecular", 2);
+		shader_ssao->setInt("ImageNorise", 3);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_position);
@@ -480,6 +554,37 @@ int main()
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
 
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, texture_ssao_noise);
+
+		glBindVertexArray(VAO_view);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+		// buffer view
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shader_view->use();
+		trans = glm::mat4(1.0f);
+		shader_view->setMatrix4f("model", trans);
+
+		shader_view->setInt("ImagePosition", 0);
+		shader_view->setInt("ImageNormal", 1);
+		shader_view->setInt("ImageAlbedoSpecular", 2);
+		shader_view->setInt("ImageSSAO", 3);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_position);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture_normal);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, texture_SSAO);
+
 		renderLight(shader_view);
 		shader_view->setVec3f("viewPos", camera_main->getCameraPosition());
 
@@ -488,19 +593,19 @@ int main()
 
 		// light
 		//glClear(GL_DEPTH_BUFFER_BIT);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO_G_Buffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, Config::Screen_width, Config::Screen_height, 0, 0, Config::Screen_width, Config::Screen_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		//glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO_G_Buffer);
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		//glBlitFramebuffer(0, 0, Config::Screen_width, Config::Screen_height, 0, 0, Config::Screen_width, Config::Screen_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-		shader_light->use();
-		trans = glm::mat4(1.0f);
-		for (int i = 0; i < 16; i ++)
-		{
-			shader_light->setVec3f("LightColor", glm::vec3(1.0));
-			cube->setPosition(light_pos_list[i]);
-			cube->setScale(glm::vec3(0.1f));
-			cube->renderCube(shader_light);
-		}
+		//shader_light->use();
+		//trans = glm::mat4(1.0f);
+		//for (int i = 0; i < 16; i++)
+		//{
+		//	shader_light->setVec3f("LightColor", glm::vec3(1.0));
+		//	light->setPosition(light_pos_list[i]);
+		//	light->setScale(glm::vec3(0.1f));
+		//	light->renderCube(shader_light);
+		//}
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
@@ -577,15 +682,30 @@ int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output)
 void renderScene(Shader * render_shader) 
 {
 	glm::mat4 trans = glm::mat4(1.0f);
-	for (int i = 0; i < 16; i ++)
-	{
-		trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, model_pos_lit[i]);
-		trans = glm::scale(trans, glm::vec3(0.2f));
+	
+	trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(3.0f, 0.5, 0.0f));
+	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	trans = glm::scale(trans, glm::vec3(0.5f));
+	render_shader->setMatrix4f("model", trans);
+	model->draw(render_shader);
 
-		render_shader->setMatrix4f("model", trans);
-		model->draw(render_shader);
-	}
+
+	render_shader->setInt("material.texture_diffuse1", 0);
+	render_shader->setInt("material.texture_specular1", 1);
+	render_shader->setInt("material.texture_normal1", 2);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, container2);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, container2_specular);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, toy_box_normal);
+
+	ground->renderCube(render_shader);
 }
 
 void renderLight(Shader * render_shader)
@@ -596,6 +716,11 @@ void renderLight(Shader * render_shader)
 		render_shader->setVec3f("lights[" + std::to_string(i) +"].Position", light_pos_list[i]);
 		render_shader->setVec3f("lights[" + std::to_string(i) + "].Color", glm::vec3(1.0f));
 	}
+}
+
+GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) 
+{
+	return a + f * (b - a);
 }
 
 unsigned int loadTexture(std::string fileName)
