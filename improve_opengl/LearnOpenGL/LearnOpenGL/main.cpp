@@ -341,10 +341,11 @@ int main()
 	ground = new Cube(vertices_ground, glm::vec3(0, -0.5, 0), glm::vec3(0), glm::vec3(15,0.5,15));
 	light = new Cube(vertices_ground, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
 
-	model = new Model("../LearnOpenGL/res/nanosuit/nanosuit.obj");
+	model = new Model("../LearnOpenGL/res/res_490/nanosuit/nanosuit.obj");
 	
 	Shader * shader_gbuffer = new Shader("../LearnOpenGL/res/res_490/shader_490_gbuffer.vs", "../LearnOpenGL/res/res_490/shader_490_gbuffer.fs");
 	Shader * shader_ssao = new Shader("../LearnOpenGL/res/res_490/shader_490_ssao.vs", "../LearnOpenGL/res/res_490/shader_490_ssao.fs");
+	Shader * shader_blur = new Shader("../LearnOpenGL/res/res_490/shader_490_blur.vs", "../LearnOpenGL/res/res_490/shader_490_blur.fs");
 	Shader * shader_view = new Shader("../LearnOpenGL/res/res_490/shader_490_view.vs", "../LearnOpenGL/res/res_490/shader_490_view.fs");
 	Shader * shader_light = new Shader("../LearnOpenGL/res/res_490/shader_490_light.vs", "../LearnOpenGL/res/res_490/shader_490_light.fs");
 
@@ -475,7 +476,25 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+	// SSAO缓冲
+	GLuint FBO_blur_Buffer;
+	glGenFramebuffers(1, &FBO_blur_Buffer);
 
+	// SSAO纹理缓冲附件
+	GLuint texture_blur;
+	glGenTextures(1, &texture_blur);
+	glBindTexture(GL_TEXTURE_2D, texture_blur);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur_Buffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_blur, 0);
+
+	// 帧缓冲状态检测
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR:FRAMEBUFFER:: SSAO framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// 显示面板
 	GLuint VBO_view;
@@ -538,7 +557,8 @@ int main()
 		}
 
 		shader_ssao->setFloat("radius", 1.0f);
-		//shader_ssao->setMatrix4f("projection", projection);
+		shader_ssao->setMatrix4f("projection", projection);
+		//shader_ssao->setMatrix4f("view", view);
 
 		shader_ssao->setInt("ImagePosition", 0);
 		shader_ssao->setInt("ImageNormal", 1);
@@ -556,6 +576,21 @@ int main()
 
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, texture_ssao_noise);
+
+		glBindVertexArray(VAO_view);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		// ssao blur
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur_Buffer);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		trans = glm::mat4(1.0f);
+		shader_blur->use();
+		shader_blur->setMatrix4f("model", trans);
+
+		shader_blur->setInt("ImageSSAO", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_SSAO);
 
 		glBindVertexArray(VAO_view);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -583,7 +618,7 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
 
 		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, texture_SSAO);
+		glBindTexture(GL_TEXTURE_2D, texture_blur);
 
 		renderLight(shader_view);
 		shader_view->setVec3f("viewPos", camera_main->getCameraPosition());

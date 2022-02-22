@@ -41,6 +41,7 @@ struct Material{
 in VS_OUT{
 	vec2 TexCoords;
 	vec3 FragPos;
+	vec3 Normal;
 	mat3 TBN;
 } fs_in;
 
@@ -48,7 +49,6 @@ uniform Material material;
 
 const float NEAR = 0.1; // Projection matrix's near plane distance
 const float FAR = 50.0f; // Projection matrix's far plane distance
-
 float LinearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0; // Back to NDC 
@@ -65,6 +65,7 @@ void main()
 	vec3 specularTexture = vec3(texture(material.texture_specular1, fs_in.TexCoords));
 	normalTexture = normalize(normalTexture * 2.0 - 1.0);
 	NormalColor = normalize(fs_in.TBN * normalTexture);
+	NormalColor = fs_in.Normal;
 	
 	AlbedoSpecularColor = vec4(diffuseTexture, specularTexture.r);
 }
