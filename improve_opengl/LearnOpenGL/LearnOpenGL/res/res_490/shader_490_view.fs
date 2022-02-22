@@ -7,6 +7,7 @@ in vec2 TexCoords;
 uniform sampler2D ImagePosition;
 uniform sampler2D ImageNormal;
 uniform sampler2D ImageAlbedoSpecular;
+uniform sampler2D ImageSSAO;
 
 struct Light{
 	vec3 Position;
@@ -23,7 +24,9 @@ void main()
 	vec3 Normal = texture(ImageNormal, TexCoords).rgb;
 	vec3 Albedo = texture(ImageAlbedoSpecular, TexCoords).rgb;
 	float Specular = texture(ImageAlbedoSpecular, TexCoords).a;
+	float SSAO_value = texture(ImageSSAO, TexCoords).r;
 
+	// vec3 lighting = Albedo * 0.1 * SSAO_value;
 	vec3 lighting = Albedo * 0.1;
 	vec3 viewDir = normalize(viewPos - FragPos);
 
@@ -33,9 +36,9 @@ void main()
 		vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Albedo * lights[i].Color * 0.1;
 		lighting += diffuse;
 	}
-
-	color = vec4(lighting, 1.0);
-	// color = vec4(FragColor.a,FragColor.a,FragColor.a, 1.0f);
+	lighting *= SSAO_value;
+	// color = vec4(SSAO_value, SSAO_value, SSAO_value, 1.0);
+	color = vec4(lighting.r,lighting.g,lighting.b, 1.0f);
 }
 
 
