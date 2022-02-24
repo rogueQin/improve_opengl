@@ -15,6 +15,7 @@
 #include "RenderBuffer.h"
 #include "RenderCube.h"
 #include "SkyBox.h"
+#include "Sphere.h"
 
 GLfloat vertices_cube [] = {
 	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
@@ -187,14 +188,7 @@ GLfloat vertices_skybox[] = {
 		-1.0f,  1.0f,  1.0f
 };
 
-Model* model;
-
-Cube* ground;
-Cube* light;
-
-GLuint container2;
-GLuint container2_specular;
-GLuint toy_box_normal;
+Sphere * sphere;
 
 glm::vec3 model_pos_lit[] = {
 	glm::vec3(-3.0f, 0.0f, -3.0f),
@@ -270,8 +264,6 @@ Camera * camera_main;
 
 void renderScene(Shader * render_shader);
 
-void renderLight(Shader * render_shader);
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void processInput(GLFWwindow * window);
@@ -318,8 +310,7 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// camera_main = new Camera(glm::vec3(3.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 100.0f);
-	camera_main = new Camera(glm::vec3(0.0f, 5.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -332,28 +323,17 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
-	container2 = loadTexture("../LearnOpenGL/res/res_490/container2.png");
-	container2_specular = loadTexture("../LearnOpenGL/res/res_490/container2_specular.png");
-	toy_box_normal = loadTexture("../LearnOpenGL/res/res_490/toy_box_normal.png");
+	sphere = new Sphere(glm::vec3(0), glm::vec3(0), glm::vec3(1));
 
-	std::cout << glGetError() << std::endl;
+	Shader * shader_light = new Shader("../LearnOpenGL/res/res_510/shader_510_light.vs", "../LearnOpenGL/res/res_510/shader_510_light.fs");
+	GLuint texture_;
 
-	ground = new Cube(vertices_ground, glm::vec3(0, -0.5, 0), glm::vec3(0), glm::vec3(15,0.5,15));
-	light = new Cube(vertices_ground, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
 
-	model = new Model("../LearnOpenGL/res/res_490/nanosuit/nanosuit.obj");
-	
-	Shader * shader_gbuffer = new Shader("../LearnOpenGL/res/res_490/shader_490_gbuffer.vs", "../LearnOpenGL/res/res_490/shader_490_gbuffer.fs");
-	Shader * shader_ssao = new Shader("../LearnOpenGL/res/res_490/shader_490_ssao.vs", "../LearnOpenGL/res/res_490/shader_490_ssao.fs");
-	Shader * shader_blur = new Shader("../LearnOpenGL/res/res_490/shader_490_blur.vs", "../LearnOpenGL/res/res_490/shader_490_blur.fs");
-	Shader * shader_view = new Shader("../LearnOpenGL/res/res_490/shader_490_view.vs", "../LearnOpenGL/res/res_490/shader_490_view.fs");
-	Shader * shader_light = new Shader("../LearnOpenGL/res/res_490/shader_490_light.vs", "../LearnOpenGL/res/res_490/shader_490_light.fs");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
 	glm::mat4 projection = camera_main->getProjection();
 
-	shader_gbuffer->setBlock("Camera", 0);
 	shader_light->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
@@ -365,155 +345,6 @@ int main()
 
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-
-	// 帧缓冲
-	GLuint FBO_G_Buffer;
-	glGenFramebuffers(1, &FBO_G_Buffer);
-
-	GLfloat borderColor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	// 位置纹理缓冲附件
-	GLuint texture_position;
-	glGenTextures(1, &texture_position);
-	glBindTexture(GL_TEXTURE_2D, texture_position);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	// 法线纹理缓冲附件
-	GLuint texture_normal;
-	glGenTextures(1, &texture_normal);
-	glBindTexture(GL_TEXTURE_2D, texture_normal);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	// 纹理缓冲附件
-	GLuint texture_albedo_specular;
-	glGenTextures(1, &texture_albedo_specular);
-	glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Config::Screen_width, Config::Screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	// 渲染缓冲对象附件
-	GLuint RBO_G_Buffer;
-	glGenRenderbuffers(1, &RBO_G_Buffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO_G_Buffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Config::Screen_width, Config::Screen_height);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO_G_Buffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_position, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_normal, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_albedo_specular, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO_G_Buffer);
-
-	GLuint attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, attachments);
-
-	// 帧缓冲状态检测
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR:FRAMEBUFFER:: g framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// SSAO缓冲
-	GLuint FBO_SSAO_Buffer;
-	glGenFramebuffers(1, &FBO_SSAO_Buffer);
-
-	// SSAO纹理缓冲附件
-	GLuint texture_SSAO;
-	glGenTextures(1, &texture_SSAO);
-	glBindTexture(GL_TEXTURE_2D, texture_SSAO);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO_SSAO_Buffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_SSAO, 0);
-
-	// 帧缓冲状态检测
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR:FRAMEBUFFER:: SSAO framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// 样本点
-	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
-	std::default_random_engine generator;
-	std::vector<glm::vec3> ssao_kernel;
-	for (GLuint i = 0; i < 64; i++)
-	{
-		glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
-		sample = glm::normalize(sample);
-		//sample *= randomFloats(generator);
-		GLfloat scale = GLfloat(i) / 64.0;
-		scale = lerp(0.1f, 1.0f, scale * scale);
-		sample *= scale;
-		ssao_kernel.push_back(sample);
-	}
-
-	// 随机旋转法线
-	std::vector<glm::vec3> ssao_noise;
-	for (GLuint i = 0; i < 16; i++)
-	{
-		glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
-		ssao_noise.push_back(noise);
-	}
-	// 随机旋转纹理
-	GLuint texture_ssao_noise;
-	glGenTextures(1, &texture_ssao_noise);
-	glBindTexture(GL_TEXTURE_2D, texture_ssao_noise);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssao_noise[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// SSAO缓冲
-	GLuint FBO_blur_Buffer;
-	glGenFramebuffers(1, &FBO_blur_Buffer);
-
-	// SSAO纹理缓冲附件
-	GLuint texture_blur;
-	glGenTextures(1, &texture_blur);
-	glBindTexture(GL_TEXTURE_2D, texture_blur);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Config::Screen_width, Config::Screen_height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur_Buffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_blur, 0);
-
-	// 帧缓冲状态检测
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR:FRAMEBUFFER:: SSAO framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// 显示面板
-	GLuint VBO_view;
-	glGenBuffers(1, &VBO_view);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_view);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_panel), vertices_panel, GL_STATIC_DRAW);
-
-	GLuint VAO_view;
-	glGenVertexArrays(1, &VAO_view);
-	glBindVertexArray(VAO_view);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
-	glBindVertexArray(0);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -533,121 +364,16 @@ int main()
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
-		// gBuffer 缓冲
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_G_Buffer);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		trans = glm::mat4(1.0f);
-		shader_gbuffer->use();
-		shader_gbuffer->setMatrix4f("model", trans);
-		shader_gbuffer->setVec3f("viewPos", camera_main->getCameraPosition());
-		shader_gbuffer->setFloat("material.shininess", 32.0f);
-		renderScene(shader_gbuffer);
-
-		// SSAO
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_SSAO_Buffer);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		trans = glm::mat4(1.0f);
-		shader_ssao->use();
-		shader_ssao->setMatrix4f("model", trans);
-
-		for (int i =0; i < 64; i++)
-		{
-			shader_ssao->setVec3f("samples["+std::to_string(i)+"]", ssao_kernel[i]);
-		}
-
-		shader_ssao->setFloat("radius", 1.0f);
-		shader_ssao->setMatrix4f("projection", projection);
-		//shader_ssao->setMatrix4f("view", view);
-
-		shader_ssao->setInt("ImagePosition", 0);
-		shader_ssao->setInt("ImageNormal", 1);
-		shader_ssao->setInt("ImageAlbedoSpecular", 2);
-		shader_ssao->setInt("ImageNorise", 3);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_position);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture_normal);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, texture_ssao_noise);
-
-		glBindVertexArray(VAO_view);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// ssao blur
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO_blur_Buffer);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		trans = glm::mat4(1.0f);
-		shader_blur->use();
-		shader_blur->setMatrix4f("model", trans);
-
-		shader_blur->setInt("ImageSSAO", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_SSAO);
-
-		glBindVertexArray(VAO_view);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
-		// buffer view
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shader_view->use();
-		trans = glm::mat4(1.0f);
-		shader_view->setMatrix4f("model", trans);
-
-		shader_view->setInt("ImagePosition", 0);
-		shader_view->setInt("ImageNormal", 1);
-		shader_view->setInt("ImageAlbedoSpecular", 2);
-		shader_view->setInt("ImageSSAO", 3);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_position);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture_normal);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, texture_albedo_specular);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, texture_blur);
-
-		renderLight(shader_view);
-		shader_view->setVec3f("viewPos", camera_main->getCameraPosition());
-
-		glBindVertexArray(VAO_view);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// light
-		//glClear(GL_DEPTH_BUFFER_BIT);
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO_G_Buffer);
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		//glBlitFramebuffer(0, 0, Config::Screen_width, Config::Screen_height, 0, 0, Config::Screen_width, Config::Screen_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-		//shader_light->use();
-		//trans = glm::mat4(1.0f);
-		//for (int i = 0; i < 16; i++)
-		//{
-		//	shader_light->setVec3f("LightColor", glm::vec3(1.0));
-		//	light->setPosition(light_pos_list[i]);
-		//	light->setScale(glm::vec3(0.1f));
-		//	light->renderCube(shader_light);
-		//}
+		shader_light->use();
+		sphere->renderSphere(shader_light);
+		//cube->renderCube(shader_light);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
-
-	//glDeleteBuffers(1, &VBO_Normal_Panel);
-	//glDeleteBuffers(1, &VAO_Normal_Panel);
 
 	glfwTerminate();
 	 
@@ -717,40 +443,10 @@ int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output)
 void renderScene(Shader * render_shader) 
 {
 	glm::mat4 trans = glm::mat4(1.0f);
-	
-	trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, glm::vec3(3.0f, 0.5, 0.0f));
-	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	trans = glm::scale(trans, glm::vec3(0.5f));
-	render_shader->setMatrix4f("model", trans);
-	model->draw(render_shader);
-
-
-	render_shader->setInt("material.texture_diffuse1", 0);
-	render_shader->setInt("material.texture_specular1", 1);
-	render_shader->setInt("material.texture_normal1", 2);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, container2);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, container2_specular);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, toy_box_normal);
-
-	ground->renderCube(render_shader);
 }
 
 void renderLight(Shader * render_shader)
 {
-	glm::mat4 trans = glm::mat4(1.0f);
-	for (int i = 0; i < 16; i++)
-	{
-		render_shader->setVec3f("lights[" + std::to_string(i) +"].Position", light_pos_list[i]);
-		render_shader->setVec3f("lights[" + std::to_string(i) + "].Color", glm::vec3(1.0f));
-	}
 }
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) 
