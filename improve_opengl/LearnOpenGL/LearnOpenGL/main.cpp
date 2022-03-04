@@ -188,7 +188,7 @@ GLfloat vertices_skybox[] = {
 		-1.0f,  1.0f,  1.0f
 };
 
-Sphere * sphere;
+Sphere * sphere[4];
 
 glm::vec3 model_pos_lit[] = {
 	glm::vec3(-3.0f, 0.0f, -3.0f),
@@ -213,25 +213,10 @@ glm::vec3 model_pos_lit[] = {
 };
 
 glm::vec3 light_pos_list[] = {
-	glm::vec3(-3.4f, 3.0f, -3.4f),
-	glm::vec3(-1.2f, 3.0f, -3.4f),
-	glm::vec3(1.2f, 3.0f, -3.4f),
-	glm::vec3(3.4f, 3.0f, -3.4f),
-
-	glm::vec3(-3.4f, 3.0f, -1.2f),
-	glm::vec3(-1.2f, 3.0f, -1.2f),
-	glm::vec3(1.2f, 3.0f, -1.2f),
-	glm::vec3(3.4f, 3.0f, -1.2f),
-
-	glm::vec3(-3.4f, 3.0f, 1.2f),
-	glm::vec3(-1.2f, 3.0f, 1.2f),
-	glm::vec3(1.2f, 3.0f, 1.2f),
-	glm::vec3(3.4f, 3.0f, 1.2f),
-
-	glm::vec3(-3.4f, 3.0f, 3.4f),
-	glm::vec3(-1.2f, 3.0f, 3.4f),
-	glm::vec3(1.2f, 3.0f, 3.4f),
-	glm::vec3(3.4f, 3.0f, 3.4f)
+	glm::vec3(10.0f, 5.0f, -10.0f),
+	glm::vec3(-10.0f, 5.0f, -10.0f),
+	glm::vec3(-10.0f, 5.0f, 10.0f),
+	glm::vec3(10.0f, 5.0f, 10.0f)
 };
 
 glm::vec3 light_color_list[] = {
@@ -310,7 +295,7 @@ int main()
 	glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	camera_main = new Camera(glm::vec3(0.0f, 0.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
+	camera_main = new Camera(glm::vec3(0.0f, 6.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
@@ -323,12 +308,17 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
-	sphere = new Sphere(glm::vec3(0), glm::vec3(0), glm::vec3(1));
+	sphere[0] = new Sphere(glm::vec3(-1, 0, -1), glm::vec3(0), glm::vec3(0.8));
+	sphere[1] = new Sphere(glm::vec3(-1, 0, 1), glm::vec3(0), glm::vec3(0.8));
+	sphere[2] = new Sphere(glm::vec3(1, 0, 1), glm::vec3(0), glm::vec3(0.8));
+	sphere[3] = new Sphere(glm::vec3(1, 0, -1), glm::vec3(0), glm::vec3(0.8));
 
 	Shader * shader_light = new Shader("../LearnOpenGL/res/res_510/shader_510_light.vs", "../LearnOpenGL/res/res_510/shader_510_light.fs");
-	GLuint texture_;
-
-
+	GLuint texture_albedo = loadTexture("../LearnOpenGL/res/res_510/rustediron2_basecolor.png");
+	GLuint texture_normal = loadTexture("../LearnOpenGL/res/res_510/rustediron2_normal.png");
+	GLuint texture_metallic = loadTexture("../LearnOpenGL/res/res_510/rustediron2_metallic.png");
+	GLuint texture_roughness = loadTexture("../LearnOpenGL/res/res_510/rustediron2_roughness.png");
+	GLuint texture_ao = loadTexture("../LearnOpenGL/res/res_510/rustediron2_ao.png");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -368,8 +358,38 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		trans = glm::mat4(1.0f);
 		shader_light->use();
-		sphere->renderSphere(shader_light);
-		//cube->renderCube(shader_light);
+		shader_light->setVec3f("camPos", camera_main->getCameraPosition());
+
+		shader_light->setInt("image_albedo", 0);
+		shader_light->setInt("image_normal", 1);
+		shader_light->setInt("image_metallic", 2);
+		shader_light->setInt("image_roughness", 3);
+		shader_light->setInt("image_ao", 4);
+
+		for (int i = 0; i < 4; i++)
+		{
+			shader_light->setVec3f("lightPosition[" + std::to_string(i) + "]", light_pos_list[i]);
+		}
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_albedo);
+		
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture_normal);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texture_metallic);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, texture_roughness);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, texture_ao);
+		
+		for (int i = 0; i < 4; i++)
+		{
+			sphere[i]->renderSphere(shader_light);
+		}
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);

@@ -24,6 +24,8 @@ public:
 
 	void setScale(glm::vec3 scale);
 
+	void TBNTriangle(glm::vec3 position_list[], glm::vec2 uv_list[], glm::vec3 *tangent_out, glm::vec3 *bitangent_out);
+
 	GLuint getVAO();
 
 	GLuint getVBO();
