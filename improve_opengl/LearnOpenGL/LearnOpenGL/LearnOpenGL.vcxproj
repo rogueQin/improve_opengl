@@ -141,6 +141,7 @@
     <ClCompile Include="scripts\Shader.cpp" />
     <ClCompile Include="scripts\stb_image.cpp" />
     <ClCompile Include="SkyBox.cpp" />
+    <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\04_transformation.node" />
@@ -201,6 +202,7 @@
     <ClInclude Include="scripts\Shader.h" />
     <ClInclude Include="scripts\SkyBox.h" />
     <ClInclude Include="scripts\stb_image.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\05_coordinate_systems.png" />
