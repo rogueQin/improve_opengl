@@ -28,7 +28,7 @@ float LinearizeDepth(float depth)
 }
 
 void main()
-{	
+{
 	vec3 FragPos = texture(ImagePosition, TexCoords).xyz;
 	vec3 Normal = texture(ImageNormal, TexCoords).rgb;
 

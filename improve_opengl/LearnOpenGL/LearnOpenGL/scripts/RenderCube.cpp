@@ -7,50 +7,56 @@ RenderCube::RenderCube(int texture_width, int texture_height)
 	buffer_height = texture_height;
 
 	// 帧缓冲对象 depth map buffer
-	glGenFramebuffers(1, &depthMapFBO);
+	glGenFramebuffers(1, &cubeMapFBO);
+	//// 渲染缓冲对象
+	//glGenRenderbuffers(1, &cubeMapRBO);
 
+	
 	// 纹理缓冲附件
-	glGenTextures(1, &depthMapCUB);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, depthMapCUB);
+	glGenTextures(1, &cubeMapCUB);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapCUB);
 
 	for (int i =0; i < 6; i++)
 	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i , 0, GL_DEPTH_COMPONENT, texture_width, texture_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i , 0, GL_RGB16F, texture_width, texture_height, 0, GL_RGB, GL_FLOAT, NULL);
 	}
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glBindFramebuffer(GL_FRAMEBUFFER, cubeMapFBO);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMapCUB, 0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthMapCUB, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+	
+	//glBindRenderbuffer(GL_RENDERBUFFER, cubeMapRBO);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, texture_width, texture_height);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, cubeMapRBO);
 
 	// 帧缓冲状态检测
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR:FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 RenderCube::~RenderCube()
 {
-	glDeleteTextures(1, &depthMapCUB);
-	glDeleteFramebuffers(1, &depthMapFBO);
+	glDeleteTextures(1, &cubeMapCUB);
+	//glDeleteRenderbuffers(1, &cubeMapRBO);
+	glDeleteFramebuffers(1, &cubeMapFBO);
 }
 
 GLuint RenderCube::GetFrameBuffer()
 {
-	return this->depthMapFBO;
+	return this->cubeMapFBO;
 }
 
 GLuint RenderCube::GetRenderCube()
 {
-	return this->depthMapCUB;
+	return this->cubeMapCUB;
 }
 
 void RenderCube::Clear()
@@ -60,7 +66,7 @@ void RenderCube::Clear()
 void RenderCube::use(Shader * shader, glm::vec3 position)
 {
 	glViewport(0, 0, buffer_width, buffer_height);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, cubeMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	this->position = position;
