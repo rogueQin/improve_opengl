@@ -17,56 +17,6 @@
 #include "SkyBox.h"
 #include "Sphere.h"
 
-GLfloat vertices_cube [] = {
-	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
-
-	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
-
-	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-
-	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-
-	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
-
-	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
-
-	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
-
-	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
-};
-
 GLfloat vertices_ground[] = {
 
 	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 5.0f, 5.0f,
@@ -190,6 +140,11 @@ GLfloat vertices_skybox[] = {
 
 Sphere * sphere[4];
 
+Cube * sky_box;
+
+RenderCube * renderCube;
+RenderCube * irradianceCube;
+
 glm::vec3 model_pos_lit[] = {
 	glm::vec3(-3.0f, 0.0f, -3.0f),
 	glm::vec3(-1.0f, 0.0f, -3.0f),	
@@ -260,6 +215,7 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
 unsigned int loadTexture(std::string fileName);
+unsigned int loadEquirectangularMap(std::string fileName);
 unsigned int loadCubeMap(std::vector<std::string> faces);
 int renderPanel(GLfloat * vertex_input, GLfloat * vertex_output);
 
@@ -296,12 +252,13 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	camera_main = new Camera(glm::vec3(0.0f, 6.0f, 7.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
+	//camera_main = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.0f, 0.1f, 50.0f);
 
 	stbi_set_flip_vertically_on_load(true);	
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 	//glEnable(GL_MULTISAMPLE);
-	//glDepthFunc(GL_LESS); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
+	glDepthFunc(GL_LEQUAL); //GL_ALWAYS、GL_NEVER、GL_LESS、GL_EQUAL、GL_LEQUAL
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -313,18 +270,29 @@ int main()
 	sphere[2] = new Sphere(glm::vec3(1, 0, 1), glm::vec3(0), glm::vec3(0.8));
 	sphere[3] = new Sphere(glm::vec3(1, 0, -1), glm::vec3(0), glm::vec3(0.8));
 
-	Shader * shader_light = new Shader("../LearnOpenGL/res/res_510/shader_510_light.vs", "../LearnOpenGL/res/res_510/shader_510_light.fs");
-	GLuint texture_albedo = loadTexture("../LearnOpenGL/res/res_510/rustediron2_basecolor.png");
-	GLuint texture_normal = loadTexture("../LearnOpenGL/res/res_510/rustediron2_normal.png");
-	GLuint texture_metallic = loadTexture("../LearnOpenGL/res/res_510/rustediron2_metallic.png");
-	GLuint texture_roughness = loadTexture("../LearnOpenGL/res/res_510/rustediron2_roughness.png");
-	GLuint texture_ao = loadTexture("../LearnOpenGL/res/res_510/rustediron2_ao.png");
+	sky_box = new Cube(glm::vec3(0), glm::vec3(0), glm::vec3(2));
+
+	renderCube = new RenderCube(1024, 1024);
+	irradianceCube = new RenderCube(32, 32);
+
+	Shader * shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_520/shader_520_equip_cub.vs", "../LearnOpenGL/res/res_520/shader_520_equip_cub.fs", "../LearnOpenGL/res/res_520/shader_520_equip_cub.gs");
+	Shader * shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_520/shader_520_irradiance_cub.vs", "../LearnOpenGL/res/res_520/shader_520_irradiance_cub.fs", "../LearnOpenGL/res/res_520/shader_520_irradiance_cub.gs");
+	Shader * shader_light = new Shader("../LearnOpenGL/res/res_520/shader_520_light.vs", "../LearnOpenGL/res/res_520/shader_520_light.fs");
+	Shader * shader_skybox = new Shader("../LearnOpenGL/res/res_520/shader_520_cubmap.vs", "../LearnOpenGL/res/res_520/shader_520_cubmap.fs");
+
+	GLuint texture_albedo = loadTexture("../LearnOpenGL/res/res_520/rustediron2_basecolor.png");
+	GLuint texture_normal = loadTexture("../LearnOpenGL/res/res_520/rustediron2_normal.png");
+	GLuint texture_metallic = loadTexture("../LearnOpenGL/res/res_520/rustediron2_metallic.png");
+	GLuint texture_roughness = loadTexture("../LearnOpenGL/res/res_520/rustediron2_roughness.png");
+	GLuint texture_ao = loadTexture("../LearnOpenGL/res/res_520/rustediron2_ao.png");
+	GLuint texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_520/Tropical_Beach_8k.jpg");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
 	glm::mat4 projection = camera_main->getProjection();
 
 	shader_light->setBlock("Camera", 0);
+	shader_skybox->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -354,17 +322,43 @@ int main()
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		trans = glm::mat4(1.0f);
+
+		// cube_map
+		shader_equipmap_cub->use();
+		shader_equipmap_cub->setInt("image_equimap", 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_er_map);
+
+		renderCube->use(shader_equipmap_cub, glm::vec3(0));
+		sky_box->renderCube(shader_equipmap_cub);
+
+		// irradiance_map
+		shader_irradiance_cub->use();
+		shader_irradiance_cub->setInt("image_cube", 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
+
+		irradianceCube->use(shader_irradiance_cub, glm::vec3(0));
+		sky_box->renderCube(shader_irradiance_cub);
+
+		// 渲染场景
+		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// pbr
 		shader_light->use();
 		shader_light->setVec3f("camPos", camera_main->getCameraPosition());
-
 		shader_light->setInt("image_albedo", 0);
 		shader_light->setInt("image_normal", 1);
 		shader_light->setInt("image_metallic", 2);
 		shader_light->setInt("image_roughness", 3);
 		shader_light->setInt("image_ao", 4);
+		shader_light->setInt("image_irradiance_cube", 5);
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -373,7 +367,7 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_albedo);
-		
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture_normal);
 
@@ -385,11 +379,23 @@ int main()
 
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, texture_ao);
-		
+
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceCube->GetRenderCube());
+
 		for (int i = 0; i < 4; i++)
 		{
 			sphere[i]->renderSphere(shader_light);
 		}
+
+
+		// 天空盒
+		shader_skybox->use();
+		shader_skybox->setInt("image_cube", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
+
+		sky_box->renderCube(shader_equipmap_cub);
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
@@ -511,6 +517,34 @@ unsigned int loadTexture(std::string fileName)
 	else
 	{
 		std::cout << "Failed to load diffuse texture!" << std::endl;
+	}
+	stbi_image_free(data);
+
+	return texture;
+}
+
+unsigned int loadEquirectangularMap(std::string fileName)
+{
+	std::string file_path = fileName;
+
+	unsigned int texture;
+	int width, height, nrChanels;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	float * data = stbi_loadf(file_path.c_str(), &width, &height, &nrChanels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16, width, height, 0, GL_RGB, GL_FLOAT, data);
+	}
+	else
+	{
+		std::cout << "Failed to load Equirectangular texture!" << std::endl;
 	}
 	stbi_image_free(data);
 
