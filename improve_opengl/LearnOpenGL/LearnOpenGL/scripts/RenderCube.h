@@ -25,8 +25,9 @@ public:
 	void use(Shader * shader, glm::vec3 position);
 
 private:
-	GLuint depthMapFBO;
-	GLuint depthMapCUB;
+	//GLuint cubeMapRBO;
+	GLuint cubeMapFBO;
+	GLuint cubeMapCUB;
 	int buffer_width, buffer_height;
 	glm::vec3 position;
 	std::vector<glm::mat4 > view_cube;
