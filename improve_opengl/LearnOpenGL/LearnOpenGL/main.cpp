@@ -145,6 +145,21 @@ Cube * sky_box;
 RenderCube * renderCube;
 RenderCube * irradianceCube;
 
+
+Shader * shader_equipmap_cub;
+Shader * shader_irradiance_cub;
+Shader * shader_prefilter_cub;
+Shader * shader_light;
+Shader * shader_skybox;
+
+GLuint texture_albedo;
+GLuint texture_normal;
+GLuint texture_metallic;
+GLuint texture_roughness;
+GLuint texture_ao;
+GLuint texture_er_map;
+
+
 glm::vec3 model_pos_lit[] = {
 	glm::vec3(-3.0f, 0.0f, -3.0f),
 	glm::vec3(-1.0f, 0.0f, -3.0f),	
@@ -214,6 +229,8 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
+void preRender();
+
 unsigned int loadTexture(std::string fileName);
 unsigned int loadEquirectangularMap(std::string fileName);
 unsigned int loadCubeMap(std::vector<std::string> faces);
@@ -275,17 +292,18 @@ int main()
 	renderCube = new RenderCube(1024, 1024);
 	irradianceCube = new RenderCube(32, 32);
 
-	Shader * shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_520/shader_520_equip_cub.vs", "../LearnOpenGL/res/res_520/shader_520_equip_cub.fs", "../LearnOpenGL/res/res_520/shader_520_equip_cub.gs");
-	Shader * shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_520/shader_520_irradiance_cub.vs", "../LearnOpenGL/res/res_520/shader_520_irradiance_cub.fs", "../LearnOpenGL/res/res_520/shader_520_irradiance_cub.gs");
-	Shader * shader_light = new Shader("../LearnOpenGL/res/res_520/shader_520_light.vs", "../LearnOpenGL/res/res_520/shader_520_light.fs");
-	Shader * shader_skybox = new Shader("../LearnOpenGL/res/res_520/shader_520_cubmap.vs", "../LearnOpenGL/res/res_520/shader_520_cubmap.fs");
+	shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_equip_cub.vs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.fs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.gs");
+	shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_irradiance_cub.vs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.fs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.gs");
+	shader_prefilter_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_irradiance_cub.vs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.fs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.gs");
+	shader_light = new Shader("../LearnOpenGL/res/res_530/shader_530_light.vs", "../LearnOpenGL/res/res_530/shader_530_light.fs");
+	shader_skybox = new Shader("../LearnOpenGL/res/res_530/shader_530_cubmap.vs", "../LearnOpenGL/res/res_530/shader_530_cubmap.fs");
 
-	GLuint texture_albedo = loadTexture("../LearnOpenGL/res/res_520/rustediron2_basecolor.png");
-	GLuint texture_normal = loadTexture("../LearnOpenGL/res/res_520/rustediron2_normal.png");
-	GLuint texture_metallic = loadTexture("../LearnOpenGL/res/res_520/rustediron2_metallic.png");
-	GLuint texture_roughness = loadTexture("../LearnOpenGL/res/res_520/rustediron2_roughness.png");
-	GLuint texture_ao = loadTexture("../LearnOpenGL/res/res_520/rustediron2_ao.png");
-	GLuint texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_520/Tropical_Beach_8k.jpg");
+	texture_albedo = loadTexture("../LearnOpenGL/res/res_530/rustediron2_basecolor.png");
+	texture_normal = loadTexture("../LearnOpenGL/res/res_530/rustediron2_normal.png");
+	texture_metallic = loadTexture("../LearnOpenGL/res/res_530/rustediron2_metallic.png");
+	texture_roughness = loadTexture("../LearnOpenGL/res/res_530/rustediron2_roughness.png");
+	texture_ao = loadTexture("../LearnOpenGL/res/res_530/rustediron2_ao.png");
+	texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_530/Tropical_Beach_8k.jpg");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -306,6 +324,10 @@ int main()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	// 预渲染场景天空盒
+	preRender();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -322,30 +344,9 @@ int main()
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
+		
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		trans = glm::mat4(1.0f);
-
-		// cube_map
-		shader_equipmap_cub->use();
-		shader_equipmap_cub->setInt("image_equimap", 0);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_er_map);
-
-		renderCube->use(shader_equipmap_cub, glm::vec3(0));
-		sky_box->renderCube(shader_equipmap_cub);
-
-		// irradiance_map
-		shader_irradiance_cub->use();
-		shader_irradiance_cub->setInt("image_cube", 0);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
-
-		irradianceCube->use(shader_irradiance_cub, glm::vec3(0));
-		sky_box->renderCube(shader_irradiance_cub);
-
 		// 渲染场景
 		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -521,6 +522,37 @@ unsigned int loadTexture(std::string fileName)
 	stbi_image_free(data);
 
 	return texture;
+}
+
+void preRender() 
+{
+	glm::mat4 trans = glm::mat4(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	trans = glm::mat4(1.0f);
+
+	// cube_map
+	shader_equipmap_cub->use();
+	shader_equipmap_cub->setInt("image_equimap", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_er_map);
+
+	renderCube->use(shader_equipmap_cub, glm::vec3(0));
+	sky_box->renderCube(shader_equipmap_cub);
+
+	// irradiance_map
+	shader_irradiance_cub->use();
+	shader_irradiance_cub->setInt("image_cube", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
+
+	irradianceCube->use(shader_irradiance_cub, glm::vec3(0));
+	sky_box->renderCube(shader_irradiance_cub);
+
+	// prefilter_cub_map
+
+
 }
 
 unsigned int loadEquirectangularMap(std::string fileName)
