@@ -1,7 +1,7 @@
 #include "RenderCube.h"
 
 
-RenderCube::RenderCube(int texture_width, int texture_height)
+RenderCube::RenderCube(int texture_width, int texture_height, bool mipmap)
 {
 	buffer_width = texture_width;
 	buffer_height = texture_height;
@@ -26,6 +26,12 @@ RenderCube::RenderCube(int texture_width, int texture_height)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	if (mipmap) 
+	{
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, cubeMapFBO);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMapCUB, 0);
@@ -67,7 +73,8 @@ void RenderCube::use(Shader * shader, glm::vec3 position)
 {
 	glViewport(0, 0, buffer_width, buffer_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, cubeMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->position = position;
 
@@ -91,3 +98,31 @@ void RenderCube::use(Shader * shader, glm::vec3 position)
 	
 }
 
+void RenderCube::useMipMap(Shader * shader, glm::vec3 position, GLuint level, GLuint texture_width, GLuint texture_height)
+{
+	glViewport(0, 0, texture_width, texture_height);
+	glBindFramebuffer(GL_FRAMEBUFFER, cubeMapFBO);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMapCUB, level);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	this->position = position;
+
+	glm::mat4 light_projection = glm::perspective(glm::radians(90.0f), (float)this->buffer_width / (float)this->buffer_width, 1.0f, 25.0f);
+
+	view_cube.clear();
+	view_cube.push_back(light_projection * glm::lookAt(position, position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	view_cube.push_back(light_projection * glm::lookAt(position, position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	view_cube.push_back(light_projection * glm::lookAt(position, position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+	view_cube.push_back(light_projection * glm::lookAt(position, position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+	view_cube.push_back(light_projection * glm::lookAt(position, position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	view_cube.push_back(light_projection * glm::lookAt(position, position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+	shader->setVec3f("lightPos", position);
+	shader->setFloat("far_plane", 25.0f);
+
+	for (int i = 0; i < 6; i++)
+	{
+		shader->setMatrix4f("shadowMatrices[" + std::to_string(i) + "]", view_cube[i]);
+	}
+}

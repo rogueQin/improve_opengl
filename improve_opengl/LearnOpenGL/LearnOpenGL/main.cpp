@@ -144,6 +144,7 @@ Cube * sky_box;
 
 RenderCube * renderCube;
 RenderCube * irradianceCube;
+RenderCube * prefilterCube;
 
 
 Shader * shader_equipmap_cub;
@@ -291,10 +292,11 @@ int main()
 
 	renderCube = new RenderCube(1024, 1024);
 	irradianceCube = new RenderCube(32, 32);
+	prefilterCube = new RenderCube(256, 256, true);
 
 	shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_equip_cub.vs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.fs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.gs");
 	shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_irradiance_cub.vs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.fs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.gs");
-	shader_prefilter_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_irradiance_cub.vs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.fs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.gs");
+	shader_prefilter_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_filter_cub.vs", "../LearnOpenGL/res/res_530/shader_530_filter_cub.fs", "../LearnOpenGL/res/res_530/shader_530_filter_cub.gs");
 	shader_light = new Shader("../LearnOpenGL/res/res_530/shader_530_light.vs", "../LearnOpenGL/res/res_530/shader_530_light.fs");
 	shader_skybox = new Shader("../LearnOpenGL/res/res_530/shader_530_cubmap.vs", "../LearnOpenGL/res/res_530/shader_530_cubmap.fs");
 
@@ -346,7 +348,7 @@ int main()
 
 		
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
 		// 渲染场景
 		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -393,10 +395,13 @@ int main()
 		// 天空盒
 		shader_skybox->use();
 		shader_skybox->setInt("image_cube", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
+		shader_skybox->setFloat("mip_level", 1.2f);
 
-		sky_box->renderCube(shader_equipmap_cub);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterCube->GetRenderCube());
+
+		sky_box->renderCube(shader_skybox);
+
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
@@ -551,8 +556,27 @@ void preRender()
 	sky_box->renderCube(shader_irradiance_cub);
 
 	// prefilter_cub_map
+	shader_prefilter_cub->use();
+	shader_prefilter_cub->setInt("image_cube", 0);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
 
+	int width = 256;
+	int height = 256;
+	float roughness = 0;
+
+	for (GLuint mip = 0; mip < 5; mip++)
+	{
+		width = 256 * std::pow(0.5, mip);
+		height = 256 * std::pow(0.5, mip);
+		roughness = (float)mip / 4.0f;
+
+		shader_prefilter_cub->setFloat("roughness", roughness);
+		prefilterCube->useMipMap(shader_prefilter_cub, glm::vec3(0), mip, width, height);
+		//prefilterCube->use(shader_prefilter_cub, glm::vec3(0));
+		sky_box->renderCube(shader_prefilter_cub);
+	}
 }
 
 unsigned int loadEquirectangularMap(std::string fileName)
