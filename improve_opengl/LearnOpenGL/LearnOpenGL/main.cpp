@@ -16,6 +16,7 @@
 #include "RenderCube.h"
 #include "SkyBox.h"
 #include "Sphere.h"
+#include "Panel.h"
 
 GLfloat vertices_ground[] = {
 
@@ -66,16 +67,6 @@ GLfloat vertices_ground[] = {
 	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 5.0f, 5.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 5.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
-};
-
-GLfloat vertices_panel [] = {
-	 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-						
-	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
 };
 
 GLfloat vertices_normal_map_panel[] = {
@@ -141,15 +132,19 @@ GLfloat vertices_skybox[] = {
 Sphere * sphere[4];
 
 Cube * sky_box;
+Panel * pane_lut;
 
 RenderCube * renderCube;
 RenderCube * irradianceCube;
 RenderCube * prefilterCube;
+RenderBuffer * PreBRDFbuffer;
 
 
 Shader * shader_equipmap_cub;
 Shader * shader_irradiance_cub;
 Shader * shader_prefilter_cub;
+Shader * shader_prebuild_brdf;
+Shader * shader_panel;
 Shader * shader_light;
 Shader * shader_skybox;
 
@@ -290,13 +285,18 @@ int main()
 
 	sky_box = new Cube(glm::vec3(0), glm::vec3(0), glm::vec3(2));
 
-	renderCube = new RenderCube(1024, 1024);
+	pane_lut = new Panel(glm::vec3(0), glm::vec3(0), glm::vec3(1));
+
+	renderCube = new RenderCube(1024, 1024, true);
 	irradianceCube = new RenderCube(32, 32);
 	prefilterCube = new RenderCube(256, 256, true);
+	PreBRDFbuffer = new RenderBuffer(512, 512);
 
 	shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_equip_cub.vs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.fs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.gs");
 	shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_irradiance_cub.vs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.fs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.gs");
 	shader_prefilter_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_filter_cub.vs", "../LearnOpenGL/res/res_530/shader_530_filter_cub.fs", "../LearnOpenGL/res/res_530/shader_530_filter_cub.gs");
+	shader_prebuild_brdf = new Shader("../LearnOpenGL/res/res_530/shader_530_brdf.vs", "../LearnOpenGL/res/res_530/shader_530_brdf.fs");
+	shader_panel = new Shader("../LearnOpenGL/res/res_530/shader_530_panel.vs", "../LearnOpenGL/res/res_530/shader_530_panel.fs");
 	shader_light = new Shader("../LearnOpenGL/res/res_530/shader_530_light.vs", "../LearnOpenGL/res/res_530/shader_530_light.fs");
 	shader_skybox = new Shader("../LearnOpenGL/res/res_530/shader_530_cubmap.vs", "../LearnOpenGL/res/res_530/shader_530_cubmap.fs");
 
@@ -305,7 +305,7 @@ int main()
 	texture_metallic = loadTexture("../LearnOpenGL/res/res_530/rustediron2_metallic.png");
 	texture_roughness = loadTexture("../LearnOpenGL/res/res_530/rustediron2_roughness.png");
 	texture_ao = loadTexture("../LearnOpenGL/res/res_530/rustediron2_ao.png");
-	texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_530/Tropical_Beach_8k.jpg");
+	texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_530/MonValley_G_DirtRoad_8k.jpg");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -313,6 +313,7 @@ int main()
 
 	shader_light->setBlock("Camera", 0);
 	shader_skybox->setBlock("Camera", 0);
+	shader_panel->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -345,8 +346,6 @@ int main()
 		
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-
-		
 
 		
 		// 渲染场景
@@ -392,17 +391,23 @@ int main()
 		}
 
 
-		// 天空盒
-		shader_skybox->use();
-		shader_skybox->setInt("image_cube", 0);
-		shader_skybox->setFloat("mip_level", 1.2f);
+		//// 天空盒
+		//shader_skybox->use();
+		//shader_skybox->setInt("image_cube", 0);
+		//shader_skybox->setFloat("mip_level", 1.2f);
+
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterCube->GetRenderCube());
+
+		//sky_box->renderCube(shader_skybox);
+
+		shader_panel->use();
+		shader_panel->setInt("image_BRDF", 0);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterCube->GetRenderCube());
+		glBindTexture(GL_TEXTURE_2D, PreBRDFbuffer->GetRenderTexture());
 
-		sky_box->renderCube(shader_skybox);
-
-
+		pane_lut->renderPanel(shader_panel);
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}
@@ -544,6 +549,7 @@ void preRender()
 
 	renderCube->use(shader_equipmap_cub, glm::vec3(0));
 	sky_box->renderCube(shader_equipmap_cub);
+	renderCube->generateMipmap();
 
 	// irradiance_map
 	shader_irradiance_cub->use();
@@ -577,6 +583,11 @@ void preRender()
 		//prefilterCube->use(shader_prefilter_cub, glm::vec3(0));
 		sky_box->renderCube(shader_prefilter_cub);
 	}
+
+	// prebuild BRDF
+	shader_prebuild_brdf->use();
+	PreBRDFbuffer->use();
+	pane_lut->renderPanel(shader_prebuild_brdf);
 }
 
 unsigned int loadEquirectangularMap(std::string fileName)

@@ -72,6 +72,9 @@
     <ClCompile Include="Sphere.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Panel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shader.fs">
@@ -245,6 +248,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\Panel.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

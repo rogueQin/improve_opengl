@@ -46,13 +46,28 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 normal, float roughness)
 	return normalize(samplerVec);
 }
 
+// 法线分布函数
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+	float a = roughness * roughness;
+	float a2 = a * a;
+	float NdotH = max(dot(N,H), 0.0);
+	float NdotH2 = NdotH * NdotH;
+
+	float nom = a2;
+	float denom = NdotH2 * (a2 - 1.0) + 1.0;
+	denom = PI * denom * denom;
+
+	return nom / denom;
+}
+
 void main()
 {
 	vec3 normal_dir = normalize(vec3(FragPos));
 	vec3 reflect_dir = normal_dir;
 	vec3 view_dir = normal_dir;
 
-	const uint SAMPLE_COUNT = 128u;
+	const uint SAMPLE_COUNT = 32u;
 	vec3 prefilteredColor = vec3(0.0);
 	float totalWeight = 0.0;
 
@@ -65,7 +80,20 @@ void main()
 		float NDotL = max(dot(normal_dir, light_dir), 0.0);
 		if(NDotL > 0.0)
 		{
-			prefilteredColor += texture(image_cube, light_dir).rgb * NDotL;
+
+			float distribution = DistributionGGX(normal_dir, half_dir, roughness);
+			float NDotH = max(dot(normal_dir, half_dir), 0.0);
+			float HDotV = max(dot(half_dir, view_dir), 0.0);
+			float pdf = distribution * NDotH / (4.0 * HDotV) + 0.0001;
+
+			float resolution = 512.0;
+			float saTexel = 4.0 * PI / (6.0 + resolution * resolution);
+			float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+
+			float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
+
+			// prefilteredColor += texture(image_cube, light_dir).rgb * NDotL;
+			prefilteredColor += textureLod(image_cube, light_dir, mipLevel).rgb * NDotL;
 			totalWeight += NDotL;
 		}
 	}

@@ -126,3 +126,9 @@ void RenderCube::useMipMap(Shader * shader, glm::vec3 position, GLuint level, GL
 		shader->setMatrix4f("shadowMatrices[" + std::to_string(i) + "]", view_cube[i]);
 	}
 }
+
+void RenderCube::generateMipmap()
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapCUB);
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+}
