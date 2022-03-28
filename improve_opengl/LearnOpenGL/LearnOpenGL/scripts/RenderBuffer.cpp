@@ -66,5 +66,5 @@ void RenderBuffer::use()
 {
 	glViewport(0, 0, buffer_width, buffer_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

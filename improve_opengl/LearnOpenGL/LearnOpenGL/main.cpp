@@ -285,7 +285,7 @@ int main()
 
 	sky_box = new Cube(glm::vec3(0), glm::vec3(0), glm::vec3(2));
 
-	pane_lut = new Panel(glm::vec3(0), glm::vec3(0), glm::vec3(1));
+	pane_lut = new Panel(glm::vec3(0), glm::vec3(0), glm::vec3(2, 2, 1));
 
 	renderCube = new RenderCube(1024, 1024, true);
 	irradianceCube = new RenderCube(32, 32);
@@ -408,6 +408,11 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, PreBRDFbuffer->GetRenderTexture());
 
 		pane_lut->renderPanel(shader_panel);
+		
+		//shader_prebuild_brdf->use();
+		//pane_lut->renderPanel(shader_prebuild_brdf);
+
+
 		// 交换缓冲区
 		glfwSwapBuffers(window);
 	}

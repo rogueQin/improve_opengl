@@ -19,6 +19,7 @@ out vec2 TexCoods;
 
 void main()
 {
+	TexCoods = aTexCoords;
 	FragPos = vec3(model * vec4(aPosition, 1.0));
 
 	gl_Position = projection * view * vec4(FragPos, 1.0);
