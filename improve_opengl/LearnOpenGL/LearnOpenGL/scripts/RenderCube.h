@@ -15,7 +15,7 @@
 class RenderCube
 {
 public:
-	RenderCube(int texture_width, int texture_height);
+	RenderCube(int texture_width, int texture_height, bool mipmap = false);
 	~RenderCube();
 
 	GLuint GetFrameBuffer();
@@ -23,6 +23,9 @@ public:
 
 	void Clear();
 	void use(Shader * shader, glm::vec3 position);
+	void useMipMap(Shader * shader, glm::vec3 position, GLuint level, GLuint texture_width, GLuint texture_height);
+	void generateMipmap();
+
 
 private:
 	//GLuint cubeMapRBO;

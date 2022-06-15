@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Panel.cpp" />
     <ClCompile Include="scripts\Camera.cpp" />
     <ClCompile Include="scripts\Config.cpp" />
     <ClCompile Include="scripts\Cube.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="scripts\Cube.h" />
     <ClInclude Include="scripts\Mesh.h" />
     <ClInclude Include="scripts\Model.h" />
+    <ClInclude Include="scripts\Panel.h" />
     <ClInclude Include="scripts\RenderBuffer.h" />
     <ClInclude Include="scripts\RenderCube.h" />
     <ClInclude Include="scripts\Shader.h" />
