@@ -16,6 +16,7 @@
 #include "RenderCube.h"
 #include "SkyBox.h"
 #include "Sphere.h"
+#include "Panel.h"
 
 GLfloat vertices_ground[] = {
 
@@ -66,16 +67,6 @@ GLfloat vertices_ground[] = {
 	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 5.0f, 5.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 5.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
-};
-
-GLfloat vertices_panel [] = {
-	 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-						
-	 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
 };
 
 GLfloat vertices_normal_map_panel[] = {
@@ -138,12 +129,35 @@ GLfloat vertices_skybox[] = {
 		-1.0f,  1.0f,  1.0f
 };
 
-Sphere * sphere[4];
+Sphere * sphere[100];
+
+Model * cerberus;
 
 Cube * sky_box;
+Panel * pane_lut;
 
 RenderCube * renderCube;
 RenderCube * irradianceCube;
+RenderCube * prefilterCube;
+RenderBuffer * PreBRDFbuffer;
+
+
+Shader * shader_equipmap_cub;
+Shader * shader_irradiance_cub;
+Shader * shader_prefilter_cub;
+Shader * shader_prebuild_brdf;
+Shader * shader_panel;
+Shader * shader_light;
+Shader * shader_model;
+Shader * shader_skybox;
+
+GLuint texture_albedo;
+GLuint texture_normal;
+GLuint texture_metallic;
+GLuint texture_roughness;
+GLuint texture_ao;
+GLuint texture_er_map;
+
 
 glm::vec3 model_pos_lit[] = {
 	glm::vec3(-3.0f, 0.0f, -3.0f),
@@ -214,6 +228,8 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 
+void preRender();
+
 unsigned int loadTexture(std::string fileName);
 unsigned int loadEquirectangularMap(std::string fileName);
 unsigned int loadCubeMap(std::vector<std::string> faces);
@@ -265,27 +281,44 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetKeyCallback(window, key_callback);
 
-	sphere[0] = new Sphere(glm::vec3(-1, 0, -1), glm::vec3(0), glm::vec3(0.8));
-	sphere[1] = new Sphere(glm::vec3(-1, 0, 1), glm::vec3(0), glm::vec3(0.8));
-	sphere[2] = new Sphere(glm::vec3(1, 0, 1), glm::vec3(0), glm::vec3(0.8));
-	sphere[3] = new Sphere(glm::vec3(1, 0, -1), glm::vec3(0), glm::vec3(0.8));
+	for (int i= 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			sphere[i * 10 + j] = new Sphere(glm::vec3(i - 5, 0, j -  5), glm::vec3(0), glm::vec3(0.4));
+		}
+	}
+
+	//sphere[0] = new Sphere(glm::vec3(-1, 0, -1), glm::vec3(0), glm::vec3(0.8));
+	//sphere[1] = new Sphere(glm::vec3(-1, 0, 1), glm::vec3(0), glm::vec3(0.8));
+	//sphere[2] = new Sphere(glm::vec3(1, 0, 1), glm::vec3(0), glm::vec3(0.8));
+	//sphere[3] = new Sphere(glm::vec3(1, 0, -1), glm::vec3(0), glm::vec3(0.8));
 
 	sky_box = new Cube(glm::vec3(0), glm::vec3(0), glm::vec3(2));
+	cerberus = new Model("../LearnOpenGL/res/res_530/cerberus/Cerberus_LP.FBX", true);
 
-	renderCube = new RenderCube(1024, 1024);
+	pane_lut = new Panel(glm::vec3(0), glm::vec3(0), glm::vec3(2, 2, 1));
+
+	renderCube = new RenderCube(1024, 1024, true);
 	irradianceCube = new RenderCube(32, 32);
+	prefilterCube = new RenderCube(256, 256, true);
+	PreBRDFbuffer = new RenderBuffer(512, 512);
 
-	Shader * shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_520/shader_520_equip_cub.vs", "../LearnOpenGL/res/res_520/shader_520_equip_cub.fs", "../LearnOpenGL/res/res_520/shader_520_equip_cub.gs");
-	Shader * shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_520/shader_520_irradiance_cub.vs", "../LearnOpenGL/res/res_520/shader_520_irradiance_cub.fs", "../LearnOpenGL/res/res_520/shader_520_irradiance_cub.gs");
-	Shader * shader_light = new Shader("../LearnOpenGL/res/res_520/shader_520_light.vs", "../LearnOpenGL/res/res_520/shader_520_light.fs");
-	Shader * shader_skybox = new Shader("../LearnOpenGL/res/res_520/shader_520_cubmap.vs", "../LearnOpenGL/res/res_520/shader_520_cubmap.fs");
+	shader_equipmap_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_equip_cub.vs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.fs", "../LearnOpenGL/res/res_530/shader_530_equip_cub.gs");
+	shader_irradiance_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_irradiance_cub.vs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.fs", "../LearnOpenGL/res/res_530/shader_530_irradiance_cub.gs");
+	shader_prefilter_cub = new Shader("../LearnOpenGL/res/res_530/shader_530_filter_cub.vs", "../LearnOpenGL/res/res_530/shader_530_filter_cub.fs", "../LearnOpenGL/res/res_530/shader_530_filter_cub.gs");
+	shader_prebuild_brdf = new Shader("../LearnOpenGL/res/res_530/shader_530_brdf.vs", "../LearnOpenGL/res/res_530/shader_530_brdf.fs");
+	shader_panel = new Shader("../LearnOpenGL/res/res_530/shader_530_panel.vs", "../LearnOpenGL/res/res_530/shader_530_panel.fs");
+	shader_light = new Shader("../LearnOpenGL/res/res_530/shader_530_light.vs", "../LearnOpenGL/res/res_530/shader_530_light.fs");
+	shader_model = new Shader("../LearnOpenGL/res/res_530/shader_530_model.vs", "../LearnOpenGL/res/res_530/shader_530_model.fs");
+	shader_skybox = new Shader("../LearnOpenGL/res/res_530/shader_530_cubmap.vs", "../LearnOpenGL/res/res_530/shader_530_cubmap.fs");
 
-	GLuint texture_albedo = loadTexture("../LearnOpenGL/res/res_520/rustediron2_basecolor.png");
-	GLuint texture_normal = loadTexture("../LearnOpenGL/res/res_520/rustediron2_normal.png");
-	GLuint texture_metallic = loadTexture("../LearnOpenGL/res/res_520/rustediron2_metallic.png");
-	GLuint texture_roughness = loadTexture("../LearnOpenGL/res/res_520/rustediron2_roughness.png");
-	GLuint texture_ao = loadTexture("../LearnOpenGL/res/res_520/rustediron2_ao.png");
-	GLuint texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_520/Tropical_Beach_8k.jpg");
+	texture_albedo = loadTexture("../LearnOpenGL/res/res_530/rustediron2_basecolor.png");
+	texture_normal = loadTexture("../LearnOpenGL/res/res_530/rustediron2_normal.png");
+	texture_metallic = loadTexture("../LearnOpenGL/res/res_530/rustediron2_metallic.png");
+	texture_roughness = loadTexture("../LearnOpenGL/res/res_530/rustediron2_roughness.png");
+	texture_ao = loadTexture("../LearnOpenGL/res/res_530/rustediron2_ao.png");
+	texture_er_map = loadEquirectangularMap("../LearnOpenGL/res/res_530/MonValley_G_DirtRoad_8k.jpg");
 
 	camera_main->update();
 	glm::mat4 view = camera_main->getView();
@@ -293,6 +326,7 @@ int main()
 
 	shader_light->setBlock("Camera", 0);
 	shader_skybox->setBlock("Camera", 0);
+	shader_panel->setBlock("Camera", 0);
 
 	GLuint UBO_camera;
 	glGenBuffers(1, &UBO_camera);
@@ -306,6 +340,10 @@ int main()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	// 预渲染场景天空盒
+	preRender();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -322,43 +360,30 @@ int main()
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		trans = glm::mat4(1.0f);
-
-		// cube_map
-		shader_equipmap_cub->use();
-		shader_equipmap_cub->setInt("image_equimap", 0);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_er_map);
-
-		renderCube->use(shader_equipmap_cub, glm::vec3(0));
-		sky_box->renderCube(shader_equipmap_cub);
-
-		// irradiance_map
-		shader_irradiance_cub->use();
-		shader_irradiance_cub->setInt("image_cube", 0);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
-
-		irradianceCube->use(shader_irradiance_cub, glm::vec3(0));
-		sky_box->renderCube(shader_irradiance_cub);
-
+		
 		// 渲染场景
 		glViewport(0, 0, Config::Screen_width, Config::Screen_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		// pbr
 		shader_light->use();
 		shader_light->setVec3f("camPos", camera_main->getCameraPosition());
-		shader_light->setInt("image_albedo", 0);
-		shader_light->setInt("image_normal", 1);
-		shader_light->setInt("image_metallic", 2);
-		shader_light->setInt("image_roughness", 3);
-		shader_light->setInt("image_ao", 4);
-		shader_light->setInt("image_irradiance_cube", 5);
+		shader_light->setInt("image_irradiance_cube", 0);
+		shader_light->setInt("image_prefilter_cube", 1);
+		shader_light->setInt("image_brdf_LUT", 2);
+
+		shader_light->setVec3f("albedo", glm::vec3(0.5f,0.0f,0.0f));
+		shader_light->setFloat("ao", 1.0f);
+
+
+
+
+		//shader_light->setInt("image_albedo", 3);
+		//shader_light->setInt("image_normal", 4);
+		//shader_light->setInt("image_ao", 5);
+		//shader_light->setInt("image_metallic", 6);
+		//shader_light->setInt("image_roughness", 7);
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -366,36 +391,69 @@ int main()
 		}
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_albedo);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture_normal);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, texture_metallic);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, texture_roughness);
-
-		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, texture_ao);
-
-		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceCube->GetRenderCube());
 
-		for (int i = 0; i < 4; i++)
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterCube->GetRenderCube());
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, PreBRDFbuffer->GetRenderTexture());
+
+
+		//glActiveTexture(GL_TEXTURE3);
+		//glBindTexture(GL_TEXTURE_2D, texture_albedo);
+
+		//glActiveTexture(GL_TEXTURE4);
+		//glBindTexture(GL_TEXTURE_2D, texture_normal);
+
+		//glActiveTexture(GL_TEXTURE5);
+		//glBindTexture(GL_TEXTURE_2D, texture_ao);
+
+		//glActiveTexture(GL_TEXTURE6);
+		//glBindTexture(GL_TEXTURE_2D, texture_metallic);
+
+		//glActiveTexture(GL_TEXTURE7);
+		//glBindTexture(GL_TEXTURE_2D, texture_roughness);
+		int nrRows = 10;
+		int nrColumns = 10;
+		for (int row = 0; row < nrRows; ++row)
 		{
-			sphere[i]->renderSphere(shader_light);
+			shader_light->setFloat("metallic", (float)row / (float)nrRows);
+			for (int col = 0; col < nrColumns; ++col)
+			{
+				// we clamp the roughness to 0.025 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
+				// on direct lighting.
+				shader_light->setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
+
+				//model = glm::mat4(1.0f);
+				//model = glm::translate(model, glm::vec3(
+				//	(float)(col - (nrColumns / 2)) * spacing,
+				//	(float)(row - (nrRows / 2)) * spacing,
+				//	-2.0f
+				//));
+				//pbrShader.setMat4("model", model);
+				//renderSphere();
+				sphere[row * nrColumns + col]->renderSphere(shader_light);
+			}
 		}
+
+		//for (int i = 0; i < 4; i++)
+		//{
+		//	shader_light->setFloat("metallic", 1.0 / (float)(4 - i));
+		//	shader_light->setFloat("roughness", 1.0 / (float)(i + 1));
+		//	sphere[i]->renderSphere(shader_light);
+		//}
 
 
 		// 天空盒
 		shader_skybox->use();
 		shader_skybox->setInt("image_cube", 0);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
 
-		sky_box->renderCube(shader_equipmap_cub);
+		sky_box->renderCube(shader_skybox);
+
 
 		// 交换缓冲区
 		glfwSwapBuffers(window);
@@ -521,6 +579,62 @@ unsigned int loadTexture(std::string fileName)
 	stbi_image_free(data);
 
 	return texture;
+}
+
+void preRender() 
+{
+	glm::mat4 trans = glm::mat4(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	trans = glm::mat4(1.0f);
+
+	// cube_map
+	shader_equipmap_cub->use();
+	shader_equipmap_cub->setInt("image_equimap", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_er_map);
+
+	renderCube->use(shader_equipmap_cub, glm::vec3(0));
+	sky_box->renderCube(shader_equipmap_cub);
+	renderCube->generateMipmap();
+
+	// irradiance_map
+	shader_irradiance_cub->use();
+	shader_irradiance_cub->setInt("image_cube", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
+
+	irradianceCube->use(shader_irradiance_cub, glm::vec3(0));
+	sky_box->renderCube(shader_irradiance_cub);
+
+	// prefilter_cub_map
+	shader_prefilter_cub->use();
+	shader_prefilter_cub->setInt("image_cube", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, renderCube->GetRenderCube());
+
+	int width = 256;
+	int height = 256;
+	float roughness = 0;
+
+	for (GLuint mip = 0; mip < 5; mip++)
+	{
+		width = 256 * std::pow(0.5, mip);
+		height = 256 * std::pow(0.5, mip);
+		roughness = (float)mip / 4.0f;
+
+		shader_prefilter_cub->setFloat("roughness", roughness);
+		prefilterCube->useMipMap(shader_prefilter_cub, glm::vec3(0), mip, width, height);
+		//prefilterCube->use(shader_prefilter_cub, glm::vec3(0));
+		sky_box->renderCube(shader_prefilter_cub);
+	}
+
+	// prebuild BRDF
+	shader_prebuild_brdf->use();
+	PreBRDFbuffer->use();
+	pane_lut->renderPanel(shader_prebuild_brdf);
 }
 
 unsigned int loadEquirectangularMap(std::string fileName)
