@@ -16,14 +16,21 @@ uniform vec3 camPos;
 uniform vec3 lightPosition[POINT_LIGHT_COUNT];
 
 uniform samplerCube image_irradiance_cube;
+uniform samplerCube image_prefilter_cube;
+uniform sampler2D image_brdf_LUT;
 
-uniform sampler2D image_albedo;
-uniform sampler2D image_normal;
-uniform sampler2D image_metallic;
-uniform sampler2D image_roughness;
-uniform sampler2D image_ao;
+// uniform sampler2D image_albedo;
+// uniform sampler2D image_normal;
+// uniform sampler2D image_ao;
+// uniform sampler2D image_metallic;
+// uniform sampler2D image_roughness;
+uniform vec3 albedo;
+uniform float metallic;
+uniform float roughness;
+uniform float ao;
 
 const float PI = 3.14159265359;
+const float MAX_REFLECTION_LOD = 4.0;
 
 // 菲涅尔方程
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
@@ -67,19 +74,20 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 
 void main()
 {
-	vec3 albedo = pow(texture(image_albedo, fs_in.TexCoords).rgb, vec3(2.2));
-	vec3 normal_color = texture(image_normal, fs_in.TexCoords).rgb;
-	normal_color = normalize(normal_color * 2.0 - 1.0);
-	vec3 normal = fs_in.TBN * normal_color;
-	// normal = (normal + 1) / 2;
-	// vec3 normal = (fs_in.Normal);
-	float metallic = texture(image_metallic, fs_in.TexCoords).r;
-	float roughness = texture(image_roughness, fs_in.TexCoords).r;
-	float ao = texture(image_ao, fs_in.TexCoords).r;
+	// vec3 albedo = pow(texture(image_albedo, fs_in.TexCoords).rgb, vec3(2.2));
+	// vec3 normal_color = texture(image_normal, fs_in.TexCoords).rgb;
+	// normal_color = normalize(normal_color * 2.0 - 1.0);
+	// vec3 normal = fs_in.TBN * normal_color;
+	// float metallic = texture(image_metallic, fs_in.TexCoords).r;
+	// float roughness = texture(image_roughness, fs_in.TexCoords).r;
+	// float ao = texture(image_ao, fs_in.TexCoords).r;
+
+	vec3 normal = (fs_in.Normal);
 
 	vec3 light_color = vec3(300.0);
 
 	vec3 view_dir = normalize(camPos - fs_in.FragPos);
+	vec3 reflect_dir = reflect(-view_dir, normal);
 
 	vec3 Lo = vec3(0.0);
 
@@ -119,16 +127,17 @@ void main()
 	}
 
 	// 环境光漫反射
+	vec3 F_env = fresnelSchlick(max(dot(fs_in.Normal, view_dir), 0.0), F0);
+	vec3 kD_env = (vec3(1.0) - F_env) * (1 - metallic);
+
 	vec3 irradiance = texture(image_irradiance_cube, fs_in.Normal).rgb;
 	vec3 diffuse = irradiance * albedo;
 
-	vec3 F_env = fresnelSchlick(max(dot(fs_in.Normal, view_dir), 0.0), F0);
-	vec3 kD_env = 1.0 - F_env;
-	vec3 ambient = kD_env * diffuse * ao;
+	vec3 prefilteredColor = textureLod(image_prefilter_cube, reflect_dir, roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 envBRDF = texture(image_brdf_LUT, vec2(max(dot(normal, view_dir), 0.0), roughness)).rg;
 
-	// 环境光镜面反射
-	
-
+	vec3 specular = prefilteredColor * (F_env * envBRDF.x + envBRDF.y);
+	vec3 ambient = (kD_env * diffuse + specular) * ao;
 
 	// vec3 ambient = vec3(0.03) * albedo * ao;
 	vec3 out_color = ambient + Lo;
